@@ -3,192 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediPrep AI — 강의 녹음 하나로, 시험 준비 끝</title>
+    <title>MediPrep AI — 차원이 다른 의학 강의 분석</title>
     <meta name="description" content="의학 강의를 녹음하면 AI가 자동으로 전사, 요약, 시험 출제 포인트까지 분석해주는 의대생 필수 앱">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
     <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
         :root {
-            --bg-deep: #060B18;
-            --bg-card: rgba(255,255,255,0.03);
-            --bg-card-hover: rgba(255,255,255,0.06);
-            --border-subtle: rgba(255,255,255,0.06);
-            --border-hover: rgba(255,255,255,0.12);
-            --text-primary: #F1F5F9;
+            --bg-deep: #030712;
+            --bg-card: rgba(255,255,255,0.02);
+            --border-glass: rgba(255,255,255,0.08);
+            --border-hover: rgba(255,255,255,0.15);
+            --text-primary: #F8FAFC;
             --text-secondary: #94A3B8;
             --text-muted: #475569;
-            --amber: #F7B731;
-            --amber-glow: rgba(247,183,49,0.15);
-            --amber-soft: #FDE68A;
-            --blue: #60A5FA;
-            --violet: #A78BFA;
-            --teal: #2DD4BF;
+            --accent-teal: #14B8A6;
+            --accent-violet: #8B5CF6;
+            --accent-amber: #F59E0B;
             --font-display: 'Syne', sans-serif;
-            --font-serif: 'Instrument Serif', serif;
-            --font-body: 'Noto Sans KR', 'Pretendard', system-ui, sans-serif;
+            --font-body: 'Pretendard', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
         }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         html { scroll-behavior: smooth; }
         body {
             font-family: var(--font-body);
-            background: var(--bg-deep);
+            background-color: var(--bg-deep);
             color: var(--text-primary);
             overflow-x: hidden;
+            cursor: none;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ── Scroll progress bar ── */
-        .scroll-progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--amber), var(--violet), var(--teal));
-            z-index: 200;
-            width: 0%;
-            transition: none;
-        }
-
-        /* ── Grain overlay ── */
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            pointer-events: none;
-            opacity: 0.025;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-            background-repeat: repeat;
-            background-size: 256px 256px;
-        }
-
-        /* ── Ambient orbs ── */
-        .orb {
-            position: absolute;
+        /* ── Custom Cursor ── */
+        .cursor {
+            position: fixed; top: 0; left: 0;
+            width: 12px; height: 12px;
+            background: var(--text-primary);
             border-radius: 50%;
-            filter: blur(80px);
-            pointer-events: none;
-            will-change: transform;
+            pointer-events: none; z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+            transition: width 0.3s, height 0.3s, background 0.3s;
         }
-        .orb-amber { background: radial-gradient(circle, rgba(247,183,49,0.18) 0%, transparent 70%); }
-        .orb-blue { background: radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%); }
-        .orb-violet { background: radial-gradient(circle, rgba(167,139,250,0.10) 0%, transparent 70%); }
+        .cursor.active {
+            width: 40px; height: 40px;
+            background: var(--accent-teal);
+            mix-blend-mode: normal; opacity: 0.5;
+        }
+        @media (hover: none) {
+            body { cursor: auto; }
+            .cursor { display: none; }
+        }
 
-        /* ── Typography ── */
+        /* ── Scroll Progress ── */
+        .scroll-progress {
+            position: fixed; top: 0; left: 0; height: 2px;
+            background: linear-gradient(90deg, var(--accent-teal), var(--accent-violet));
+            z-index: 200; width: 0%;
+        }
+
+        /* ── Grain & Fluid Background ── */
+        .noise-overlay {
+            position: fixed; inset: 0; z-index: 9998;
+            pointer-events: none; opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+        .fluid-bg {
+            position: fixed; inset: 0; z-index: -1;
+            overflow: hidden; pointer-events: none;
+        }
+        .fluid-orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(120px); opacity: 0.4;
+            animation: orb-float 20s infinite ease-in-out alternate;
+        }
+        .orb-1 { width: 600px; height: 600px; background: var(--accent-violet); top: -10%; left: -10%; }
+        .orb-2 { width: 500px; height: 500px; background: var(--accent-teal); bottom: -20%; right: -10%; animation-delay: -5s; }
+        @keyframes orb-float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 150px) scale(1.2); }
+        }
+
+        /* ── Typography & Utilities ── */
+        .container { max-width: 1300px; margin: 0 auto; padding: 0 2rem; }
         .font-display { font-family: var(--font-display); }
-        .font-serif { font-family: var(--font-serif); }
         .font-mono { font-family: var(--font-mono); }
-
-        .text-gradient-amber {
-            background: linear-gradient(135deg, #F7B731 0%, #FDE68A 50%, #F59E0B 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .text-gradient-cool {
-            background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 50%, #2DD4BF 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
+        .text-gradient {
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-violet));
+            -webkit-background-clip: text; background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         /* ── Navigation ── */
         .nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
             padding: 1rem 0;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .nav-scrolled {
-            background: rgba(6,11,24,0.85);
+            background: rgba(3,7,18,0.85);
             backdrop-filter: blur(20px) saturate(1.5);
             -webkit-backdrop-filter: blur(20px) saturate(1.5);
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-glass);
             padding: 0.6rem 0;
         }
         .nav-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            max-width: 1300px; margin: 0 auto; padding: 0 2rem;
+            display: flex; align-items: center; justify-content: space-between;
         }
         .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            text-decoration: none;
-            color: var(--text-primary);
+            display: flex; align-items: center; gap: 0.6rem;
+            text-decoration: none; color: var(--text-primary);
         }
         .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
         .nav-logo span {
-            font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 1.15rem;
-            letter-spacing: -0.02em;
+            font-family: var(--font-display); font-weight: 700;
+            font-size: 1.15rem; letter-spacing: -0.02em;
         }
-        .nav-logo .accent { color: var(--amber); }
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            list-style: none;
-        }
+        .nav-logo .accent { color: var(--accent-teal); }
+        .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
         .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            letter-spacing: 0.02em;
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.875rem; font-weight: 500; letter-spacing: 0.02em;
             transition: color 0.2s;
         }
         .nav-links a:hover { color: var(--text-primary); }
         .nav-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 1.25rem;
-            background: var(--amber);
-            color: #0B1120;
-            font-weight: 700;
-            font-size: 0.8rem;
-            border-radius: 100px;
-            text-decoration: none;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            transition: all 0.3s;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.5rem 1.25rem; background: var(--accent-teal);
+            color: #030712; font-weight: 700; font-size: 0.8rem;
+            border-radius: 100px; text-decoration: none;
+            letter-spacing: 0.03em; text-transform: uppercase; transition: all 0.3s;
         }
         .nav-cta:hover {
-            background: var(--amber-soft);
-            transform: translateY(-1px);
-            box-shadow: 0 8px 24px rgba(247,183,49,0.25);
+            background: #2DD4BF; transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(20,184,166,0.25);
         }
         .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 0.5rem;
+            display: none; background: none; border: none;
+            color: var(--text-secondary); cursor: none; padding: 0.5rem;
         }
         .mobile-menu { display: none; padding: 1rem 0; }
         .mobile-menu a {
-            display: block;
-            padding: 0.75rem 0;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            border-bottom: 1px solid var(--border-subtle);
+            display: block; padding: 0.75rem 0;
+            color: var(--text-secondary); text-decoration: none; font-weight: 500;
+            border-bottom: 1px solid var(--border-glass);
         }
         .mobile-menu a:last-child { border-bottom: none; }
         @media (max-width: 768px) {
@@ -197,539 +165,325 @@
             .mobile-menu.open { display: block; }
         }
 
-        /* ── Sections ── */
-        section { position: relative; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+        /* ── Magnetic Button ── */
+        .magnetic-wrap {
+            display: inline-block; padding: 20px; margin: -20px;
+        }
+        .btn-glass {
+            display: inline-flex; align-items: center; gap: 0.75rem;
+            padding: 1rem 2rem; border-radius: 100px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--text-primary); font-weight: 600; text-decoration: none;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s, border-color 0.3s;
+            position: relative; overflow: hidden;
+        }
+        .btn-glass::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%); transition: transform 0.6s ease;
+        }
+        .btn-glass:hover { background: rgba(255,255,255,0.1); border-color: var(--accent-teal); }
+        .btn-glass:hover::before { transform: translateX(100%); }
 
-        /* ── Hero ── */
+        .btn-glass svg { width: 20px; height: 20px; }
+
+        /* 준비중 버튼 */
+        .btn-coming {
+            display: inline-flex; align-items: center; gap: 0.75rem;
+            padding: 1rem 2rem; border-radius: 100px;
+            background: transparent; border: 1px dashed rgba(255,255,255,0.1);
+            color: var(--text-muted); font-weight: 600;
+            cursor: default; position: relative;
+        }
+        .btn-coming svg { width: 20px; height: 20px; opacity: 0.4; }
+        .coming-tag {
+            position: absolute; top: -8px; right: -8px;
+            background: var(--accent-violet); color: white;
+            font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+            padding: 2px 8px; border-radius: 100px;
+            letter-spacing: 0.05em; text-transform: uppercase;
+        }
+
+        /* ── Hero Section (3D Parallax) ── */
         .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding-top: 6rem;
-            padding-bottom: 4rem;
-            position: relative;
-            overflow: hidden;
+            min-height: 100vh; display: flex; align-items: center;
+            padding-top: 8rem; position: relative;
         }
         .hero-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-        }
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 1rem 0.4rem 0.6rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 100px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            font-weight: 500;
-        }
-        .hero-badge .dot {
-            width: 6px; height: 6px;
-            background: #22C55E;
-            border-radius: 50%;
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
-            50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 4rem; align-items: center;
         }
         .hero-title {
-            font-family: var(--font-display);
-            font-size: clamp(2.5rem, 5.5vw, 4.5rem);
-            font-weight: 800;
-            line-height: 1.1;
-            letter-spacing: -0.03em;
-            margin-bottom: 1.5rem;
+            font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 800;
+            line-height: 1.05; letter-spacing: -0.03em; margin-bottom: 1.5rem;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
         }
-        .hero-subtitle {
-            font-size: 1.125rem;
-            color: var(--text-secondary);
-            line-height: 1.8;
-            margin-bottom: 2.5rem;
-            max-width: 480px;
+        .hero-title .line { display: block; transform: translateY(100%); opacity: 0; }
+        .hero-desc {
+            font-size: 1.2rem; color: var(--text-secondary); line-height: 1.6;
+            margin-bottom: 3rem; max-width: 500px; opacity: 0;
         }
-        .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .hero-buttons { display: flex; flex-wrap: wrap; gap: 0.75rem; opacity: 0; }
 
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.9rem 1.75rem;
-            background: var(--amber);
-            color: #0B1120;
-            font-weight: 700;
-            font-size: 0.95rem;
-            border-radius: 14px;
-            text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border: none;
-            cursor: pointer;
+        /* 3D Phone Scene */
+        .scene-3d {
+            perspective: 1200px; width: 100%; height: 600px;
+            display: flex; justify-content: center; align-items: center;
         }
-        .btn-primary:hover {
-            background: var(--amber-soft);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(247,183,49,0.3);
+        .phone-wrapper {
+            position: relative; width: 300px; height: 620px;
+            transform-style: preserve-3d;
+            transform: rotateX(10deg) rotateY(-20deg);
         }
-        .btn-primary svg { width: 20px; height: 20px; }
-
-        .btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.9rem 1.75rem;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 0.95rem;
-            border-radius: 14px;
-            text-decoration: none;
-            border: 1px solid var(--border-subtle);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        .phone-body {
+            position: absolute; inset: 0; border-radius: 40px;
+            background: #111; border: 2px solid #333;
+            box-shadow: -20px 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.1);
+            transform: translateZ(0px);
         }
-        .btn-secondary:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--border-hover);
-            transform: translateY(-2px);
+        .phone-screen {
+            position: absolute; inset: 12px; border-radius: 28px;
+            background: #000; overflow: hidden;
+            transform: translateZ(10px);
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .btn-secondary svg { width: 20px; height: 20px; }
-
-        /* Google Play 준비중 */
-        .btn-coming-soon {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.9rem 1.75rem;
-            background: transparent;
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.95rem;
-            border-radius: 14px;
-            text-decoration: none;
-            border: 1px dashed rgba(255,255,255,0.1);
-            cursor: default;
-            position: relative;
-        }
-        .btn-coming-soon svg { width: 20px; height: 20px; opacity: 0.4; }
-        .btn-coming-soon .coming-tag {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--violet);
-            color: white;
-            font-family: var(--font-mono);
-            font-size: 0.6rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 100px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+        .phone-screen img { width: 100%; height: 100%; object-fit: cover; }
+        .phone-glare {
+            position: absolute; inset: 0; border-radius: 40px;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2), transparent 60%);
+            transform: translateZ(20px); pointer-events: none;
+            mix-blend-mode: overlay; opacity: 0.5;
         }
 
-        /* Phone mockup */
-        .hero-phone-wrap {
-            display: flex;
-            justify-content: center;
-            position: relative;
-        }
-        .phone-mockup {
-            position: relative;
-            width: 280px;
-            padding: 14px;
-            border-radius: 40px;
-            background: linear-gradient(160deg, #1E293B, #0F172A);
-            box-shadow:
-                0 0 0 1px rgba(255,255,255,0.08),
-                0 40px 80px -20px rgba(0,0,0,0.6),
-                inset 0 1px 0 rgba(255,255,255,0.06);
-            z-index: 2;
-        }
-        .phone-mockup::before {
-            content: '';
-            position: absolute;
-            top: 14px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 26px;
-            background: #0F172A;
-            border-radius: 0 0 18px 18px;
-            z-index: 10;
-        }
-        .phone-mockup img { width: 100%; border-radius: 28px; display: block; }
-        .phone-glow {
-            position: absolute;
-            inset: -40px;
-            background: radial-gradient(ellipse at center, rgba(247,183,49,0.12) 0%, transparent 60%);
-            z-index: 1;
-            border-radius: 50%;
-            animation: glow-breathe 4s ease-in-out infinite;
-        }
-        @keyframes glow-breathe {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-14px); }
-        }
-        .float { animation: float 6s ease-in-out infinite; }
-        .float-d1 { animation-delay: 0.8s; }
-        .float-d2 { animation-delay: 1.6s; }
-
-        .phone-sm { width: 230px; padding: 10px; border-radius: 34px; }
-        .phone-sm::before { height: 22px; width: 70px; border-radius: 0 0 14px 14px; top: 10px; }
-        .phone-sm img { border-radius: 24px; }
-
-        @media (max-width: 768px) {
-            .hero { min-height: auto; padding-top: 7rem; padding-bottom: 3rem; }
-            .hero-grid { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
-            .hero-subtitle { margin-left: auto; margin-right: auto; }
-            .hero-actions { justify-content: center; }
-            .phone-mockup { width: 240px; }
+        @media (max-width: 900px) {
+            .hero-grid { grid-template-columns: 1fr; text-align: center; }
+            .hero-desc { margin-left: auto; margin-right: auto; }
+            .hero-buttons { justify-content: center; }
+            .scene-3d { perspective: 800px; height: 500px; }
+            .phone-wrapper { width: 240px; height: 500px; }
         }
 
-        /* ── Trust strip ── */
+        /* ── Trust Strip ── */
         .trust-strip {
             padding: 3rem 0;
-            border-top: 1px solid var(--border-subtle);
-            border-bottom: 1px solid var(--border-subtle);
+            border-top: 1px solid var(--border-glass);
+            border-bottom: 1px solid var(--border-glass);
         }
         .trust-grid {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 3rem;
-            flex-wrap: wrap;
+            display: flex; align-items: center; justify-content: center;
+            gap: 3rem; flex-wrap: wrap;
         }
         .trust-item { text-align: center; }
         .trust-number {
-            font-family: var(--font-display);
-            font-size: 1.75rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
+            font-family: var(--font-display); font-size: 1.75rem;
+            font-weight: 800; letter-spacing: -0.02em;
         }
-        .trust-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; font-weight: 500; }
-        .trust-divider { width: 1px; height: 40px; background: var(--border-subtle); }
+        .trust-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .trust-divider { width: 1px; height: 40px; background: var(--border-glass); }
         @media (max-width: 640px) {
             .trust-grid { gap: 1.5rem; }
             .trust-divider { display: none; }
             .trust-item { flex: 1; min-width: 120px; }
         }
 
-        /* ── Section headers ── */
+        /* ── Features (Asymmetric Brutalist/Glass Grid) ── */
+        .features { padding: 10rem 0; }
+        .section-header { margin-bottom: 4rem; text-align: center; }
         .section-label {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--amber);
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            margin-bottom: 1rem;
-            font-weight: 500;
+            font-family: var(--font-mono); font-size: 0.75rem;
+            color: var(--accent-teal); text-transform: uppercase;
+            letter-spacing: 0.15em; margin-bottom: 1rem; font-weight: 500;
         }
-        .section-title {
-            font-family: var(--font-display);
-            font-size: clamp(1.75rem, 3.5vw, 2.75rem);
-            font-weight: 800;
-            line-height: 1.2;
-            letter-spacing: -0.02em;
-            margin-bottom: 1rem;
+        .scrub-text {
+            font-size: clamp(2.5rem, 4vw, 3.5rem); font-weight: 800;
+            color: rgba(255,255,255,0.1);
+            background: linear-gradient(90deg, var(--text-primary), var(--text-primary));
+            background-repeat: no-repeat;
+            background-size: 0% 100%;
+            -webkit-background-clip: text;
         }
-        .section-desc {
-            font-size: 1.05rem;
-            color: var(--text-secondary);
-            line-height: 1.7;
-            max-width: 560px;
+        .b-grid {
+            display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem;
+        }
+        .b-card {
+            background: rgba(255,255,255,0.02);
+            backdrop-filter: blur(20px); border-radius: 24px;
+            padding: 3rem 2rem; position: relative;
+            border: 1px solid var(--border-glass);
+            overflow: hidden;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            min-height: 320px;
+        }
+        .b-card::before {
+            content: ''; position: absolute; inset: -2px; z-index: -1;
+            background: conic-gradient(from var(--angle, 0deg), transparent 70%, var(--accent-teal), var(--accent-violet));
+            opacity: 0; transition: opacity 0.5s;
+            animation: spin 4s linear infinite;
+        }
+        .b-card:hover::before { opacity: 1; }
+        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+        @keyframes spin { to { --angle: 360deg; } }
+        .b-card-inner { background: var(--bg-deep); position: absolute; inset: 1px; border-radius: 23px; z-index: -1; }
+        .b-card h3 { font-size: 1.5rem; margin-bottom: 0.5rem; font-family: var(--font-display); }
+        .b-card p { color: var(--text-secondary); line-height: 1.6; }
+        .span-8 { grid-column: span 8; }
+        .span-4 { grid-column: span 4; }
+        .span-5 { grid-column: span 5; }
+        .span-7 { grid-column: span 7; }
+        @media (max-width: 900px) {
+            .b-grid > div { grid-column: span 12; }
         }
 
-        /* ── Split text reveal ── */
-        .split-reveal .word {
-            display: inline-block;
-            overflow: hidden;
-            vertical-align: top;
-        }
-        .split-reveal .word-inner {
-            display: inline-block;
-            transform: translateY(110%);
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .split-reveal.visible .word-inner {
-            transform: translateY(0);
-        }
-
-        /* ── Features ── */
-        .features { padding: 7rem 0; position: relative; }
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.25rem;
-            margin-top: 3.5rem;
-        }
-        .feature-card {
-            padding: 2rem 1.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-            /* tilt effect */
-            transform-style: preserve-3d;
-            perspective: 800px;
-        }
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(247,183,49,0.3), transparent);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-        .feature-card:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--border-hover);
-            box-shadow: 0 20px 60px -15px rgba(0,0,0,0.5);
-        }
-        .feature-card:hover::before { opacity: 1; }
-        .feature-icon {
-            width: 48px; height: 48px; border-radius: 14px;
+        /* ── Z-axis Screenshots Stack ── */
+        .z-stack-section {
+            height: 100vh; position: relative;
             display: flex; align-items: center; justify-content: center;
-            margin-bottom: 1.25rem; font-size: 1.25rem;
-        }
-        .feature-icon.amber { background: rgba(247,183,49,0.1); color: var(--amber); }
-        .feature-icon.blue { background: rgba(96,165,250,0.1); color: var(--blue); }
-        .feature-icon.violet { background: rgba(167,139,250,0.1); color: var(--violet); }
-        .feature-icon.teal { background: rgba(45,212,191,0.1); color: var(--teal); }
-        .feature-card h3 {
-            font-family: var(--font-display);
-            font-size: 1.05rem; font-weight: 700;
-            margin-bottom: 0.6rem; letter-spacing: -0.01em;
-        }
-        .feature-card p { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.7; }
-        @media (max-width: 1024px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 640px) { .features-grid { grid-template-columns: 1fr; } }
-
-        /* ── Screenshots — Sticky horizontal scroll ── */
-        .screenshots-wrap {
-            position: relative;
-            /* height = viewport + (items - visible) * scroll distance */
-        }
-        .screenshots-sticky {
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
             overflow: hidden;
         }
-        .screenshots-header {
+        .z-stack-header {
+            position: absolute; top: 8%; left: 0; right: 0;
+            text-align: center; z-index: 20;
+        }
+        .soundwave-bg {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.1; z-index: 0;
+        }
+        .soundwave-bg div {
+            width: 4px; height: 100px; background: var(--accent-teal);
+            margin: 0 4px; border-radius: 4px; transition: height 0.1s;
+        }
+        .z-cards-container {
+            position: relative; width: 280px; height: 580px;
+            perspective: 1500px; z-index: 10;
+        }
+        .z-card {
+            position: absolute; inset: 0; border-radius: 32px;
+            background: #111; border: 1px solid var(--border-glass);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; overflow: hidden;
+            will-change: transform, opacity, filter;
+        }
+        .z-card img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .z-card-info {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 2rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9) 60%);
             text-align: center;
-            padding: 0 1.5rem;
-            margin-bottom: 2rem;
         }
-        .screenshots-track-wrap {
-            overflow: hidden;
-            padding: 1rem 0 2rem;
-        }
-        .screenshots-track {
-            display: flex;
-            gap: 3rem;
-            padding: 0 calc(50vw - 130px);
-            will-change: transform;
-            transition: transform 0.1s linear;
-        }
-        .screenshot-item {
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            opacity: 0.4;
-            transform: scale(0.9);
-            transition: opacity 0.5s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .screenshot-item.active {
-            opacity: 1;
-            transform: scale(1);
-        }
-        .screenshot-item h4 {
+        .z-card-info h4 {
             font-family: var(--font-display);
-            font-weight: 700;
-            margin-top: 1.5rem;
-            margin-bottom: 0.3rem;
-            font-size: 0.95rem;
+            font-size: 1.3rem; margin-bottom: 0.3rem;
         }
-        .screenshot-item p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-align: center;
-            max-width: 200px;
-            line-height: 1.5;
-        }
-        /* Scroll indicator dots */
-        .screenshot-dots {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 1.5rem;
-        }
-        .screenshot-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--text-muted);
-            transition: all 0.3s;
-        }
-        .screenshot-dot.active {
-            background: var(--amber);
-            width: 24px;
-            border-radius: 3px;
-        }
+        .z-card-info p { color: var(--text-secondary); font-size: 0.85rem; }
 
-        /* Mobile fallback for screenshots */
-        @media (max-width: 768px) {
-            .screenshots-wrap { height: auto !important; }
-            .screenshots-sticky {
-                position: relative;
-                height: auto;
-                padding: 5rem 0;
-            }
-            .screenshots-track-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .screenshots-track {
-                padding: 0 2rem;
-                transition: none;
-            }
-            .screenshot-item { opacity: 1; transform: scale(1); }
-        }
-
-        /* ── How it works ── */
-        .how-it-works { padding: 7rem 0; }
+        /* ── How It Works ── */
+        .how-it-works { padding: 8rem 0; }
         .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            margin-top: 3.5rem;
-            position: relative;
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 2rem; margin-top: 3.5rem; position: relative;
         }
         .steps-connector {
-            position: absolute;
-            top: 36px;
-            left: calc(16.67% + 24px);
-            right: calc(16.67% + 24px);
+            position: absolute; top: 36px;
+            left: calc(16.67% + 24px); right: calc(16.67% + 24px);
             height: 1px;
-            background: linear-gradient(90deg, var(--amber), var(--violet), var(--teal));
-            opacity: 0.3;
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+            background: linear-gradient(90deg, var(--accent-teal), var(--accent-violet), var(--accent-amber));
+            opacity: 0.3; transform: scaleX(0); transform-origin: left;
         }
-        .steps-grid.visible .steps-connector { transform: scaleX(1); }
-
         .step { text-align: center; position: relative; }
         .step-number {
             width: 56px; height: 56px; border-radius: 16px;
             display: flex; align-items: center; justify-content: center;
             font-family: var(--font-display);
             font-size: 1.25rem; font-weight: 800;
-            margin: 0 auto 1.25rem;
-            position: relative; z-index: 2;
-            color: #0B1120;
-            transform: scale(0) rotate(-10deg);
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin: 0 auto 1.25rem; position: relative; z-index: 2;
+            color: #030712; transform: scale(0) rotate(-10deg);
         }
-        .steps-grid.visible .step:nth-child(2) .step-number { transition-delay: 0.2s; }
-        .steps-grid.visible .step:nth-child(3) .step-number { transition-delay: 0.4s; }
-        .steps-grid.visible .step:nth-child(4) .step-number { transition-delay: 0.6s; }
-        .steps-grid.visible .step-number { transform: scale(1) rotate(0deg); }
-
-        .step-number.n1 { background: var(--amber); box-shadow: 0 8px 24px rgba(247,183,49,0.2); }
-        .step-number.n2 { background: var(--violet); box-shadow: 0 8px 24px rgba(167,139,250,0.2); }
-        .step-number.n3 { background: var(--teal); box-shadow: 0 8px 24px rgba(45,212,191,0.2); }
+        .step-number.n1 { background: var(--accent-teal); box-shadow: 0 8px 24px rgba(20,184,166,0.2); }
+        .step-number.n2 { background: var(--accent-violet); box-shadow: 0 8px 24px rgba(139,92,246,0.2); }
+        .step-number.n3 { background: var(--accent-amber); box-shadow: 0 8px 24px rgba(245,158,11,0.2); }
         .step h3 {
             font-family: var(--font-display);
             font-size: 1.15rem; font-weight: 700; margin-bottom: 0.6rem;
         }
-        .step p {
-            font-size: 0.9rem; color: var(--text-secondary);
-            line-height: 1.7; max-width: 300px; margin: 0 auto;
-        }
+        .step p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; max-width: 300px; margin: 0 auto; }
         @media (max-width: 768px) {
             .steps-grid { grid-template-columns: 1fr; gap: 3rem; }
             .steps-connector { display: none; }
         }
 
-        /* ── Value prop ── */
-        .value-section { padding: 7rem 0; position: relative; overflow: hidden; }
+        /* ── Value Prop ── */
+        .value-section { padding: 8rem 0; position: relative; overflow: hidden; }
         .value-bg {
             position: absolute; inset: 0;
             background:
-                radial-gradient(ellipse 60% 50% at 30% 50%, rgba(247,183,49,0.06) 0%, transparent 70%),
-                radial-gradient(ellipse 50% 60% at 70% 40%, rgba(96,165,250,0.05) 0%, transparent 70%),
-                linear-gradient(180deg, rgba(15,23,42,0.8) 0%, var(--bg-deep) 100%);
+                radial-gradient(ellipse 60% 50% at 30% 50%, rgba(20,184,166,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 60% at 70% 40%, rgba(139,92,246,0.05) 0%, transparent 70%);
         }
         .value-content {
             position: relative; z-index: 2;
             max-width: 680px; margin: 0 auto; text-align: center;
         }
         .value-quote {
-            font-family: var(--font-serif);
-            font-style: italic;
+            font-family: var(--font-display);
             font-size: clamp(1.5rem, 3vw, 2.25rem);
-            line-height: 1.4;
-            margin-bottom: 1.5rem;
-            color: var(--text-primary);
+            font-weight: 800; line-height: 1.3; margin-bottom: 1.5rem;
         }
         .value-text {
             font-size: 1.05rem; color: var(--text-secondary);
             line-height: 1.8; margin-bottom: 3rem;
         }
-        .value-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.25rem;
-        }
+        .value-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
         .stat-card {
             padding: 1.75rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
+            background: var(--bg-card); border: 1px solid var(--border-glass);
+            border-radius: 16px; backdrop-filter: blur(10px);
         }
         .stat-number {
-            font-family: var(--font-display);
-            font-size: 2rem; font-weight: 800;
+            font-family: var(--font-display); font-size: 2rem; font-weight: 800;
         }
         .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem; }
         @media (max-width: 640px) { .value-stats { grid-template-columns: 1fr; } }
 
-        /* ── Counter animation ── */
-        .counter-val { display: inline-block; min-width: 2ch; }
-
         /* ── CTA ── */
-        .cta-section { padding: 7rem 0; position: relative; }
+        .cta-section { padding: 8rem 0; position: relative; }
         .cta-inner { max-width: 640px; margin: 0 auto; text-align: center; }
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+            font-weight: 800; line-height: 1.2;
+            letter-spacing: -0.02em; margin-bottom: 1rem;
+        }
+        .section-desc {
+            font-size: 1.05rem; color: var(--text-secondary);
+            line-height: 1.7; max-width: 560px;
+        }
         .cta-actions {
             display: flex; flex-wrap: wrap; gap: 0.75rem;
             justify-content: center; margin-top: 2rem;
         }
         .cta-note {
-            margin-top: 1rem; font-size: 0.8rem;
-            color: var(--text-muted); font-family: var(--font-mono);
-            letter-spacing: 0.03em;
+            margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);
+            font-family: var(--font-mono); letter-spacing: 0.03em;
+        }
+
+        /* ── Glow separator ── */
+        .glow-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--accent-teal) 30%, var(--accent-violet) 70%, transparent 100%);
+            opacity: 0.2;
         }
 
         /* ── Footer ── */
-        footer { border-top: 1px solid var(--border-subtle); padding: 3.5rem 0 2rem; }
+        footer { border-top: 1px solid var(--border-glass); padding: 3.5rem 0 2rem; }
         .footer-top {
             display: flex; justify-content: space-between; align-items: flex-start;
             gap: 3rem; padding-bottom: 2.5rem;
-            border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap;
+            border-bottom: 1px solid var(--border-glass); flex-wrap: wrap;
         }
         .footer-brand p {
             font-size: 0.85rem; color: var(--text-muted);
@@ -737,9 +491,9 @@
         }
         .footer-cols { display: flex; gap: 3.5rem; flex-wrap: wrap; }
         .footer-col h4 {
-            font-family: var(--font-display);
-            font-size: 0.8rem; font-weight: 700; color: var(--text-secondary);
-            margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
+            font-family: var(--font-display); font-size: 0.8rem; font-weight: 700;
+            color: var(--text-secondary); margin-bottom: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.08em;
         }
         .footer-col a, .footer-col span {
             display: block; font-size: 0.85rem; color: var(--text-muted);
@@ -764,47 +518,24 @@
             .footer-cols { gap: 2rem; }
         }
 
-        /* ── Reveal animation ── */
+        /* ── Reveal ── */
         .reveal {
-            opacity: 0;
-            transform: translateY(40px);
+            opacity: 0; transform: translateY(40px);
             transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .reveal.visible { opacity: 1; transform: translateY(0); }
-        .reveal-d1 { transition-delay: 0.1s; }
-        .reveal-d2 { transition-delay: 0.2s; }
-        .reveal-d3 { transition-delay: 0.3s; }
-        .reveal-d4 { transition-delay: 0.4s; }
-
-        /* Hero stagger */
-        .hero-stagger > * {
-            opacity: 0; transform: translateY(30px);
-            animation: hero-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .hero-stagger > *:nth-child(1) { animation-delay: 0.1s; }
-        .hero-stagger > *:nth-child(2) { animation-delay: 0.25s; }
-        .hero-stagger > *:nth-child(3) { animation-delay: 0.4s; }
-        .hero-stagger > *:nth-child(4) { animation-delay: 0.55s; }
-        @keyframes hero-in { to { opacity: 1; transform: translateY(0); } }
-
-        .hero-phone-reveal {
-            opacity: 0; transform: translateY(60px) scale(0.95);
-            animation: phone-in 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
-        }
-        @keyframes phone-in { to { opacity: 1; transform: translateY(0) scale(1); } }
-
-        /* ── Glow line separator ── */
-        .glow-line {
-            height: 1px;
-            background: linear-gradient(90deg, transparent 0%, var(--amber) 30%, var(--violet) 70%, transparent 100%);
-            opacity: 0.2; margin: 0;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Scroll Progress -->
+    <div class="cursor" id="cursor"></div>
+    <div class="noise-overlay"></div>
     <div class="scroll-progress" id="scrollProgress"></div>
+
+    <div class="fluid-bg">
+        <div class="fluid-orb orb-1"></div>
+        <div class="fluid-orb orb-2"></div>
+    </div>
 
     <!-- ═══ Navigation ═══ -->
     <nav class="nav" id="nav">
@@ -819,11 +550,11 @@
                 <li><a href="#how-it-works">사용법</a></li>
                 <li><a href="mailto:hopekgh@gmail.com" class="nav-cta">문의하기</a></li>
             </ul>
-            <button class="mobile-menu-btn" id="menu-btn" aria-label="메뉴 열기">
+            <button class="mobile-menu-btn" id="menuBtn" aria-label="메뉴 열기">
                 <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
         </div>
-        <div class="mobile-menu" id="mobile-menu">
+        <div class="mobile-menu" id="mobileMenu">
             <div class="container">
                 <a href="#features">기능</a>
                 <a href="#screenshots">미리보기</a>
@@ -834,41 +565,40 @@
     </nav>
 
     <!-- ═══ Hero ═══ -->
-    <section class="hero">
-        <div class="orb orb-amber" data-parallax="0.03" style="width:500px;height:500px;top:-10%;right:-5%;"></div>
-        <div class="orb orb-blue" data-parallax="0.05" style="width:400px;height:400px;bottom:10%;left:-8%;"></div>
-
-        <div class="container">
-            <div class="hero-grid">
-                <div class="hero-stagger">
-                    <div class="hero-badge">
-                        <span class="dot"></span>
-                        의대생을 위한 AI 학습 도우미
-                    </div>
-                    <h1 class="hero-title">
-                        강의 녹음 하나로,<br><span class="text-gradient-amber">시험 준비</span> 끝.
-                    </h1>
-                    <p class="hero-subtitle">
-                        녹음 버튼 하나만 누르세요.<br>
-                        AI가 전사, 요약, 시험 출제 포인트까지 자동으로 분석합니다.
-                    </p>
-                    <div class="hero-actions">
-                        <a href="https://apps.apple.com/kr/app/%EB%A9%94%EB%94%94%ED%94%84%EB%A0%A2-%EC%9D%98%EB%8C%80%EC%83%9D%EC%9A%A9-%EA%B0%95%EC%9D%98-%EB%85%B9%EC%9D%8C-%EC%A0%84%EC%82%AC-%EC%9A%94%EC%95%BD/id6749312731" class="btn-primary">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                            App Store
+    <section class="hero container">
+        <div class="hero-grid">
+            <div class="hero-content">
+                <h1 class="hero-title font-display">
+                    <span class="line">Clinical Precision.</span>
+                    <span class="line text-gradient">Neural Fluidity.</span>
+                </h1>
+                <p class="hero-desc">
+                    복잡한 의학 강의를 녹음 버튼 하나로 완벽히 구조화합니다.<br>
+                    전사, 요약, 출제 포인트 분석까지 AI가 실시간으로 처리합니다.
+                </p>
+                <div class="hero-buttons">
+                    <div class="magnetic-wrap">
+                        <a href="https://apps.apple.com/kr/app/%EB%A9%94%EB%94%94%ED%94%84%EB%A0%A2-%EC%9D%98%EB%8C%80%EC%83%9D%EC%9A%A9-%EA%B0%95%EC%9D%98-%EB%85%B9%EC%9D%8C-%EC%A0%84%EC%82%AC-%EC%9A%94%EC%95%BD/id6749312731" class="btn-glass btn-magnetic">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                            <span>App Store 다운로드</span>
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                         </a>
-                        <span class="btn-coming-soon">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.807 1.626a1 1 0 0 1 0 1.732l-2.807 1.626L15.206 12l2.492-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
-                            Google Play
-                            <span class="coming-tag">준비중</span>
-                        </span>
                     </div>
+                    <span class="btn-coming">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.807 1.626a1 1 0 0 1 0 1.732l-2.807 1.626L15.206 12l2.492-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
+                        <span>Google Play</span>
+                        <span class="coming-tag">준비중</span>
+                    </span>
                 </div>
-                <div class="hero-phone-wrap hero-phone-reveal" data-parallax-phone>
-                    <div class="phone-glow"></div>
-                    <div class="phone-mockup float">
+            </div>
+
+            <div class="scene-3d">
+                <div class="phone-wrapper" id="heroPhone">
+                    <div class="phone-body"></div>
+                    <div class="phone-screen">
                         <img src="images/Screenshot_20260228_150926.png" alt="MediPrep AI 출제 암시 분석">
                     </div>
+                    <div class="phone-glare"></div>
                 </div>
             </div>
         </div>
@@ -879,68 +609,90 @@
         <div class="container">
             <div class="trust-grid">
                 <div class="trust-item">
-                    <div class="trust-number text-gradient-amber">AI 기반</div>
+                    <div class="trust-number text-gradient">AI 기반</div>
                     <div class="trust-label">Gemini 모델 활용</div>
                 </div>
                 <div class="trust-divider"></div>
                 <div class="trust-item">
-                    <div class="trust-number text-gradient-cool">5가지</div>
+                    <div class="trust-number text-gradient">5가지</div>
                     <div class="trust-label">AI 분석 기능 제공</div>
                 </div>
                 <div class="trust-divider"></div>
                 <div class="trust-item">
-                    <div class="trust-number text-gradient-amber">의학 특화</div>
+                    <div class="trust-number text-gradient">의학 특화</div>
                     <div class="trust-label">전문 용어 정확 인식</div>
                 </div>
                 <div class="trust-divider"></div>
                 <div class="trust-item">
-                    <div class="trust-number text-gradient-cool">실시간</div>
+                    <div class="trust-number text-gradient">실시간</div>
                     <div class="trust-label">녹음 즉시 분석 시작</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ═══ Features ═══ -->
-    <section id="features" class="features">
-        <div class="orb orb-violet" data-parallax="0.04" style="width:500px;height:500px;top:0;right:-15%;"></div>
-        <div class="container">
-            <div class="reveal" style="text-align:center;">
-                <div class="section-label">Features</div>
-                <h2 class="section-title split-reveal">녹음 하나로 이 모든 걸 해줍니다</h2>
-                <p class="section-desc" style="margin:0 auto;">
-                    복잡한 의학 강의, 더 이상 필기에 집중할 필요 없습니다.<br>
-                    AI가 당신의 학습 어시스턴트가 되어드립니다.
-                </p>
+    <!-- ═══ Features (Asymmetric Brutalist Grid) ═══ -->
+    <section id="features" class="features container">
+        <div class="section-header">
+            <div class="section-label font-mono">Features</div>
+            <h2 class="font-display scrub-text" id="scrubText">녹음 하나로 이 모든 걸 해줍니다.</h2>
+        </div>
+
+        <div class="b-grid">
+            <div class="b-card span-8">
+                <div class="b-card-inner"></div>
+                <h3>자동 요약 구조화 노트</h3>
+                <p>강의 개요, 학습 목표, 핵심 내용을 방대한 의학 지식 베이스를 바탕으로 완벽하게 정리합니다. 복습 시간을 획기적으로 줄여줍니다.</p>
             </div>
-            <div class="features-grid">
-                <div class="feature-card reveal reveal-d1" data-tilt>
-                    <div class="feature-icon amber">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-                    </div>
-                    <h3>강의 녹음 & 전사</h3>
-                    <p>강의를 녹음하면 AI가 의학 전문 용어까지 정확하게 텍스트로 변환합니다. 타임스탬프로 원하는 구간을 바로 찾을 수 있어요.</p>
+            <div class="b-card span-4">
+                <div class="b-card-inner"></div>
+                <h3 class="text-gradient">출제 암시 감지</h3>
+                <p>"시험에 나옵니다" 같은 교수님 발언을 AI가 자동 감지합니다. 해당 구간 음성도 바로 재생할 수 있어요.</p>
+            </div>
+            <div class="b-card span-5">
+                <div class="b-card-inner"></div>
+                <h3>전문 의학 용어 전사</h3>
+                <p>라틴어 어원이 섞인 복잡한 의학 용어조차 문맥을 파악하여 정확하게 텍스트로 변환합니다. 타임스탬프로 원하는 구간을 바로 찾으세요.</p>
+            </div>
+            <div class="b-card span-7">
+                <div class="b-card-inner"></div>
+                <h3>시험 대비 요점 리포트</h3>
+                <p>단순 요약을 넘어, 강의 내용을 시험 관점에서 재구성합니다. 예상 출제 주제와 핵심 포인트를 한눈에 파악하세요.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="glow-line"></div>
+
+    <!-- ═══ Z-axis Screenshots Stack ═══ -->
+    <section class="z-stack-section" id="screenshots">
+        <div class="z-stack-header">
+            <div class="section-label font-mono">App Preview</div>
+            <h2 class="section-title font-display">실제 앱 화면을 확인하세요</h2>
+        </div>
+
+        <div class="soundwave-bg" id="soundwave"></div>
+
+        <div class="z-cards-container">
+            <div class="z-card">
+                <img src="images/Screenshot_20260228_150839.png" alt="상세 요약">
+                <div class="z-card-info">
+                    <h4>상세 요약</h4>
+                    <p>구조화된 노트 자동 생성</p>
                 </div>
-                <div class="feature-card reveal reveal-d2" data-tilt>
-                    <div class="feature-icon violet">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                    <h3>자동 요약 노트</h3>
-                    <p>강의 개요, 학습 목표, 핵심 내용을 구조화된 노트로 자동 정리합니다. 복습 시간을 획기적으로 줄여줍니다.</p>
+            </div>
+            <div class="z-card">
+                <img src="images/Screenshot_20260228_150914.png" alt="출제 암시">
+                <div class="z-card-info">
+                    <h4>출제 암시 감지</h4>
+                    <p>교수님의 시험 힌트 자동 스크랩</p>
                 </div>
-                <div class="feature-card reveal reveal-d3" data-tilt>
-                    <div class="feature-icon amber">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
-                    </div>
-                    <h3>출제 암시 감지</h3>
-                    <p>"시험에 나옵니다" 같은 교수님 발언을 AI가 자동 감지합니다. 해당 구간 음성도 바로 재생할 수 있어요.</p>
-                </div>
-                <div class="feature-card reveal reveal-d4" data-tilt>
-                    <div class="feature-icon teal">
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                    </div>
-                    <h3>시험 대비 요점 정리</h3>
-                    <p>강의 내용을 시험 관점에서 재구성합니다. 예상 출제 주제와 핵심 포인트를 한눈에 파악하세요.</p>
+            </div>
+            <div class="z-card">
+                <img src="images/Screenshot_20260228_150926.png" alt="시험 대비">
+                <div class="z-card-info">
+                    <h4>시험 대비 요점</h4>
+                    <p>시험 관점에서 핵심 재구성</p>
                 </div>
             </div>
         </div>
@@ -948,73 +700,28 @@
 
     <div class="glow-line"></div>
 
-    <!-- ═══ Screenshots — Sticky Horizontal Scroll ═══ -->
-    <div class="screenshots-wrap" id="screenshots">
-        <div class="screenshots-sticky">
-            <div class="screenshots-header reveal">
-                <div class="section-label">App Preview</div>
-                <h2 class="section-title">실제 앱 화면을 확인하세요</h2>
-                <p class="section-desc" style="margin:0 auto;">심장학 강의를 녹음한 실제 분석 결과입니다.</p>
-            </div>
-            <div class="screenshots-track-wrap">
-                <div class="screenshots-track" id="screenshotTrack">
-                    <div class="screenshot-item" data-idx="0">
-                        <div class="phone-mockup phone-sm">
-                            <img src="images/Screenshot_20260228_150839.png" alt="강의 요약">
-                        </div>
-                        <h4>상세 요약</h4>
-                        <p>학습 목표, 핵심 개념을 구조화된 노트로 자동 정리</p>
-                    </div>
-                    <div class="screenshot-item" data-idx="1">
-                        <div class="phone-mockup phone-sm">
-                            <img src="images/Screenshot_20260228_150914.png" alt="출제 암시">
-                        </div>
-                        <h4>출제 암시 감지</h4>
-                        <p>교수님의 시험 힌트를 자동으로 감지하고 정리</p>
-                    </div>
-                    <div class="screenshot-item" data-idx="2">
-                        <div class="phone-mockup phone-sm">
-                            <img src="images/Screenshot_20260228_150926.png" alt="시험 대비">
-                        </div>
-                        <h4>시험 대비 요점</h4>
-                        <p>시험 관점에서 핵심 내용을 재구성하여 요약</p>
-                    </div>
-                </div>
-            </div>
-            <div class="screenshot-dots" id="screenshotDots">
-                <div class="screenshot-dot active"></div>
-                <div class="screenshot-dot"></div>
-                <div class="screenshot-dot"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="glow-line"></div>
-
     <!-- ═══ How It Works ═══ -->
-    <section id="how-it-works" class="how-it-works">
-        <div class="container">
-            <div class="reveal" style="text-align:center;">
-                <div class="section-label">How it works</div>
-                <h2 class="section-title">3단계면 충분합니다</h2>
+    <section id="how-it-works" class="how-it-works container">
+        <div class="reveal" style="text-align:center;">
+            <div class="section-label font-mono">How it works</div>
+            <h2 class="section-title font-display">3단계면 충분합니다</h2>
+        </div>
+        <div class="steps-grid reveal" id="stepsGrid">
+            <div class="steps-connector"></div>
+            <div class="step">
+                <div class="step-number n1">1</div>
+                <h3>강의를 녹음하세요</h3>
+                <p>앱에서 녹음 버튼만 누르세요. 강의실에서 바로 고품질 녹음이 시작됩니다.</p>
             </div>
-            <div class="steps-grid reveal" id="stepsGrid">
-                <div class="steps-connector"></div>
-                <div class="step">
-                    <div class="step-number n1">1</div>
-                    <h3>강의를 녹음하세요</h3>
-                    <p>앱에서 녹음 버튼만 누르세요. 강의실에서 바로 고품질 녹음이 시작됩니다.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number n2">2</div>
-                    <h3>AI가 자동 분석</h3>
-                    <p>녹음이 끝나면 AI가 전사, 요약, 출제 포인트 분석을 동시에 진행합니다.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number n3">3</div>
-                    <h3>시험 준비 완료</h3>
-                    <p>전사본, 요약 노트, 출제 암시, 시험 대비 요점까지. 바로 복습을 시작하세요.</p>
-                </div>
+            <div class="step">
+                <div class="step-number n2">2</div>
+                <h3>AI가 자동 분석</h3>
+                <p>녹음이 끝나면 AI가 전사, 요약, 출제 포인트 분석을 동시에 진행합니다.</p>
+            </div>
+            <div class="step">
+                <div class="step-number n3">3</div>
+                <h3>시험 준비 완료</h3>
+                <p>전사본, 요약 노트, 출제 암시, 시험 대비 요점까지. 바로 복습을 시작하세요.</p>
             </div>
         </div>
     </section>
@@ -1024,7 +731,7 @@
         <div class="value-bg"></div>
         <div class="container">
             <div class="value-content reveal">
-                <div class="section-label">For Medical Students</div>
+                <div class="section-label font-mono">For Medical Students</div>
                 <p class="value-quote">
                     필기하느라 강의를 놓치고,<br>
                     강의 듣느라 필기를 놓치고 있나요?
@@ -1036,15 +743,15 @@
                 </p>
                 <div class="value-stats" id="valueStats">
                     <div class="stat-card">
-                        <div class="stat-number text-gradient-amber"><span class="counter-val" data-target="100" data-suffix="%">0%</span></div>
+                        <div class="stat-number text-gradient"><span class="counter-val" data-target="100" data-suffix="%">0%</span></div>
                         <div class="stat-label">강의 집중도 향상</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number text-gradient-cool">1/3</div>
+                        <div class="stat-number text-gradient">1/3</div>
                         <div class="stat-label">복습 시간 단축</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number text-gradient-amber">자동</div>
+                        <div class="stat-number text-gradient">자동</div>
                         <div class="stat-label">시험 포인트 추출</div>
                     </div>
                 </div>
@@ -1054,24 +761,25 @@
 
     <!-- ═══ Final CTA ═══ -->
     <section class="cta-section">
-        <div class="orb orb-amber" data-parallax="0.02" style="width:400px;height:400px;top:20%;left:50%;transform:translateX(-50%);"></div>
         <div class="container">
             <div class="cta-inner reveal">
-                <div class="section-label">Get Started</div>
-                <h2 class="section-title">
-                    다음 시험,<br><span class="text-gradient-amber">MediPrep AI</span>와 함께
+                <div class="section-label font-mono">Get Started</div>
+                <h2 class="section-title font-display">
+                    다음 시험,<br><span class="text-gradient">MediPrep AI</span>와 함께
                 </h2>
                 <p class="section-desc" style="margin:0 auto;">
                     녹음 하나로 시험 준비의 절반을 끝내보세요.
                 </p>
                 <div class="cta-actions">
-                    <a href="https://apps.apple.com/kr/app/%EB%A9%94%EB%94%94%ED%94%84%EB%A0%A2-%EC%9D%98%EB%8C%80%EC%83%9D%EC%9A%A9-%EA%B0%95%EC%9D%98-%EB%85%B9%EC%9D%8C-%EC%A0%84%EC%82%AC-%EC%9A%94%EC%95%BD/id6749312731" class="btn-primary" style="font-size:1.1rem;padding:1rem 2rem;">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                        App Store에서 다운로드
-                    </a>
-                    <span class="btn-coming-soon" style="font-size:1.1rem;padding:1rem 2rem;">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.807 1.626a1 1 0 0 1 0 1.732l-2.807 1.626L15.206 12l2.492-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
-                        Google Play
+                    <div class="magnetic-wrap">
+                        <a href="https://apps.apple.com/kr/app/%EB%A9%94%EB%94%94%ED%94%84%EB%A0%A2-%EC%9D%98%EB%8C%80%EC%83%9D%EC%9A%A9-%EA%B0%95%EC%9D%98-%EB%85%B9%EC%9D%8C-%EC%A0%84%EC%82%AC-%EC%9A%94%EC%95%BD/id6749312731" class="btn-glass btn-magnetic" style="font-size:1.1rem;padding:1rem 2rem;">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                            <span>App Store에서 다운로드</span>
+                        </a>
+                    </div>
+                    <span class="btn-coming" style="font-size:1.1rem;padding:1rem 2rem;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.807 1.626a1 1 0 0 1 0 1.732l-2.807 1.626L15.206 12l2.492-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
+                        <span>Google Play</span>
                         <span class="coming-tag">준비중</span>
                     </span>
                 </div>
@@ -1122,119 +830,156 @@
     <!-- ═══ Scripts ═══ -->
     <script>
     (() => {
-        // ── 1. Scroll Progress Bar ──
-        const progressBar = document.getElementById('scrollProgress');
-        const updateProgress = () => {
-            const h = document.documentElement.scrollHeight - window.innerHeight;
-            progressBar.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
-        };
+        gsap.registerPlugin(ScrollTrigger);
 
-        // ── 2. Parallax Orbs ──
-        const parallaxEls = document.querySelectorAll('[data-parallax]');
-        const updateParallax = () => {
-            const sy = window.scrollY;
-            parallaxEls.forEach(el => {
-                const speed = parseFloat(el.dataset.parallax);
-                el.style.transform = `translateY(${sy * speed * -60}px)`;
+        // ── 1. Custom Cursor ──
+        const cursor = document.getElementById('cursor');
+        if (window.matchMedia('(hover: hover)').matches) {
+            const cursorX = gsap.quickTo(cursor, "left", { duration: 0.1, ease: "power3" });
+            const cursorY = gsap.quickTo(cursor, "top", { duration: 0.1, ease: "power3" });
+            window.addEventListener('mousemove', (e) => { cursorX(e.clientX); cursorY(e.clientY); });
+            document.querySelectorAll('a, button, .b-card, .magnetic-wrap').forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('active'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
             });
-            // Hero phone parallax
-            const phoneWrap = document.querySelector('[data-parallax-phone]');
-            if (phoneWrap) {
-                const t = Math.min(sy / window.innerHeight, 1);
-                phoneWrap.style.transform = `translateY(${t * 40}px) scale(${1 - t * 0.05})`;
-            }
-        };
-
-        // ── 3. Reveal Observer ──
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    revealObserver.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.12 });
-        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-        // ── 4. Split Text Reveal ──
-        document.querySelectorAll('.split-reveal').forEach(el => {
-            const text = el.textContent.trim();
-            el.innerHTML = '';
-            text.split('').forEach((ch, i) => {
-                if (ch === ' ') {
-                    el.appendChild(document.createTextNode(' '));
-                    return;
-                }
-                const word = document.createElement('span');
-                word.className = 'word';
-                const inner = document.createElement('span');
-                inner.className = 'word-inner';
-                inner.textContent = ch;
-                inner.style.transitionDelay = (i * 0.025) + 's';
-                word.appendChild(inner);
-                el.appendChild(word);
-            });
-            revealObserver.observe(el);
-        });
-
-        // ── 5. Sticky Horizontal Screenshots ──
-        const ssWrap = document.querySelector('.screenshots-wrap');
-        const ssTrack = document.getElementById('screenshotTrack');
-        const ssDots = document.getElementById('screenshotDots');
-        const ssItems = ssTrack ? ssTrack.querySelectorAll('.screenshot-item') : [];
-        const ITEM_COUNT = ssItems.length;
-
-        const isMobile = window.matchMedia('(max-width: 768px)').matches;
-
-        if (ssWrap && ssTrack && ITEM_COUNT > 0 && !isMobile) {
-            // Set wrap height: 100vh + scroll range
-            const scrollRange = (ITEM_COUNT - 1) * window.innerHeight * 0.6;
-            ssWrap.style.height = (window.innerHeight + scrollRange) + 'px';
-
-            const updateScreenshots = () => {
-                const rect = ssWrap.getBoundingClientRect();
-                const progress = Math.max(0, Math.min(1, -rect.top / scrollRange));
-
-                // Calculate offset for each item (center the first, then scroll through)
-                const itemW = ssItems[0].offsetWidth + 48; // width + gap
-                const maxOffset = (ITEM_COUNT - 1) * itemW;
-                const offset = progress * maxOffset;
-                ssTrack.style.transform = `translateX(${-offset}px)`;
-
-                // Active state
-                const activeIdx = Math.round(progress * (ITEM_COUNT - 1));
-                ssItems.forEach((item, i) => {
-                    item.classList.toggle('active', i === activeIdx);
-                });
-                // Dots
-                if (ssDots) {
-                    ssDots.querySelectorAll('.screenshot-dot').forEach((dot, i) => {
-                        dot.classList.toggle('active', i === activeIdx);
-                    });
-                }
-            };
-
-            window.addEventListener('scroll', updateScreenshots, { passive: true });
-            updateScreenshots();
-        } else {
-            // Mobile: all active
-            ssItems.forEach(item => item.classList.add('active'));
         }
 
-        // ── 6. Card Tilt Effect ──
-        document.querySelectorAll('[data-tilt]').forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = (e.clientX - rect.left) / rect.width - 0.5;
-                const y = (e.clientY - rect.top) / rect.height - 0.5;
-                card.style.transform = `perspective(800px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-6px)`;
+        // ── 2. Scroll Progress Bar ──
+        const progressBar = document.getElementById('scrollProgress');
+        window.addEventListener('scroll', () => {
+            const h = document.documentElement.scrollHeight - window.innerHeight;
+            progressBar.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
+        }, { passive: true });
+
+        // ── 3. Hero Entrance Animation ──
+        const heroTl = gsap.timeline();
+        heroTl
+            .to('.hero-title .line', { y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: "power4.out" })
+            .to('.hero-desc', { opacity: 1, duration: 1 }, "-=0.5")
+            .to('.hero-buttons', { opacity: 1, duration: 0.8 }, "-=0.4")
+            .fromTo('#heroPhone',
+                { z: -500, rotationX: 40, rotationY: 40, opacity: 0 },
+                { z: 0, rotationX: 10, rotationY: -20, opacity: 1, duration: 1.5, ease: "expo.out" }, "-=1");
+
+        // ── 4. Hero 3D Phone Mouse Tracking ──
+        const phone = document.getElementById('heroPhone');
+        const glare = document.querySelector('.phone-glare');
+        if (window.matchMedia('(hover: hover)').matches && phone) {
+            document.addEventListener('mousemove', (e) => {
+                const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+                const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+                gsap.to(phone, { rotationY: -20 + xAxis, rotationX: 10 - yAxis, ease: "power1", duration: 0.5 });
+                if (glare) {
+                    gsap.to(glare, {
+                        background: `radial-gradient(circle at ${e.pageX/window.innerWidth*100}% ${e.pageY/window.innerHeight*100}%, rgba(255,255,255,0.3), transparent 60%)`,
+                        duration: 0.2
+                    });
+                }
             });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = '';
+        }
+
+        // ── 5. Magnetic Button ──
+        document.querySelectorAll('.magnetic-wrap').forEach(wrap => {
+            const btn = wrap.querySelector('.btn-magnetic');
+            if (!btn) return;
+            wrap.addEventListener('mousemove', (e) => {
+                const rect = wrap.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                gsap.to(btn, { x: x * 0.4, y: y * 0.4, duration: 0.3, ease: "power2.out" });
+            });
+            wrap.addEventListener('mouseleave', () => {
+                gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
             });
         });
 
-        // ── 7. Counter Animation ──
+        // ── 6. Scrub Text (fill on scroll) ──
+        gsap.to("#scrubText", {
+            backgroundSize: "100% 100%",
+            ease: "none",
+            scrollTrigger: {
+                trigger: "#scrubText",
+                start: "top 80%",
+                end: "top 30%",
+                scrub: true,
+            }
+        });
+
+        // ── 7. Feature Cards stagger reveal ──
+        gsap.from('.b-card', {
+            y: 80, opacity: 0, duration: 0.8, stagger: 0.15,
+            ease: "power3.out",
+            scrollTrigger: { trigger: '.b-grid', start: 'top 75%' }
+        });
+
+        // ── 8. Z-axis Card Stack ──
+        const waveContainer = document.getElementById('soundwave');
+        for (let i = 0; i < 30; i++) {
+            const bar = document.createElement('div');
+            bar.style.height = `${Math.random() * 60 + 20}px`;
+            waveContainer.appendChild(bar);
+        }
+
+        const cards = gsap.utils.toArray('.z-card');
+        if (cards.length >= 3) {
+            gsap.set(cards[1], { z: -400, y: 100, opacity: 0, filter: "blur(10px)" });
+            gsap.set(cards[2], { z: -800, y: 200, opacity: 0, filter: "blur(20px)" });
+
+            const stackTl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: "#screenshots",
+                    start: "top top",
+                    end: "+=200%",
+                    pin: true,
+                    scrub: 1
+                }
+            });
+
+            stackTl
+                .to(cards[0], { z: 400, opacity: 0, filter: "blur(10px)" }, 0)
+                .to(cards[1], { z: 0, y: 0, opacity: 1, filter: "blur(0px)" }, 0)
+                .to(cards[2], { z: -400, y: 100, opacity: 0.5, filter: "blur(5px)" }, 0)
+                .to(cards[1], { z: 400, opacity: 0, filter: "blur(10px)" }, 1)
+                .to(cards[2], { z: 0, y: 0, opacity: 1, filter: "blur(0px)" }, 1);
+
+            ScrollTrigger.create({
+                trigger: "#screenshots",
+                start: "top bottom",
+                end: "bottom top",
+                onUpdate: (self) => {
+                    const bars = waveContainer.children;
+                    const speed = Math.abs(self.getVelocity());
+                    for (let i = 0; i < bars.length; i++) {
+                        const h = 20 + Math.random() * (50 + speed / 10);
+                        bars[i].style.height = `${Math.min(h, 200)}px`;
+                    }
+                }
+            });
+        }
+
+        // ── 9. Steps Animation ──
+        const stepsGrid = document.getElementById('stepsGrid');
+        if (stepsGrid) {
+            ScrollTrigger.create({
+                trigger: stepsGrid,
+                start: 'top 70%',
+                onEnter: () => {
+                    stepsGrid.classList.add('visible');
+                    // Animate step numbers
+                    gsap.to(stepsGrid.querySelectorAll('.step-number'), {
+                        scale: 1, rotation: 0, duration: 0.6,
+                        stagger: 0.2, ease: "back.out(1.7)"
+                    });
+                    // Animate connector
+                    gsap.to(stepsGrid.querySelector('.steps-connector'), {
+                        scaleX: 1, duration: 1.2, delay: 0.3, ease: "power2.out"
+                    });
+                },
+                once: true
+            });
+        }
+
+        // ── 10. Counter Animation ──
         const counterObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
@@ -1257,27 +1002,26 @@
         }, { threshold: 0.5 });
         document.querySelectorAll('.stat-card').forEach(c => counterObserver.observe(c));
 
-        // ── 8. Steps grid animation ──
-        const stepsGrid = document.getElementById('stepsGrid');
-        if (stepsGrid) revealObserver.observe(stepsGrid);
+        // ── 11. Generic Reveal Observer ──
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-        // ── Unified scroll handler ──
-        const onScroll = () => {
-            updateProgress();
-            updateParallax();
-        };
-        window.addEventListener('scroll', onScroll, { passive: true });
-        onScroll();
-
-        // ── Nav ──
+        // ── 12. Nav scroll ──
         const nav = document.getElementById('nav');
         window.addEventListener('scroll', () => {
             nav.classList.toggle('nav-scrolled', window.scrollY > 30);
         }, { passive: true });
 
-        // ── Mobile menu ──
-        const menuBtn = document.getElementById('menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
+        // ── 13. Mobile menu ──
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
         menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
         mobileMenu.querySelectorAll('a').forEach(a =>
             a.addEventListener('click', () => mobileMenu.classList.remove('open'))
