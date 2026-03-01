@@ -3,537 +3,1167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediPrep AI - 강의 녹음 하나로, 시험 준비 끝</title>
+    <title>MediPrep AI — 강의 녹음 하나로, 시험 준비 끝</title>
     <meta name="description" content="의학 강의를 녹음하면 AI가 자동으로 전사, 요약, 시험 출제 포인트까지 분석해주는 의대생 필수 앱">
-    <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Pretendard', 'system-ui', 'sans-serif'] },
-                    colors: {
-                        brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            200: '#c7d2fe',
-                            300: '#a5b4fc',
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            800: '#3730a3',
-                            900: '#312e81',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { font-family: 'Pretendard', system-ui, sans-serif; }
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-        .gradient-text {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
-            background-clip: text;
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-deep: #060B18;
+            --bg-card: rgba(255,255,255,0.03);
+            --bg-card-hover: rgba(255,255,255,0.06);
+            --border-subtle: rgba(255,255,255,0.06);
+            --border-hover: rgba(255,255,255,0.12);
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #475569;
+            --amber: #F7B731;
+            --amber-glow: rgba(247,183,49,0.15);
+            --amber-soft: #FDE68A;
+            --blue: #60A5FA;
+            --violet: #A78BFA;
+            --teal: #2DD4BF;
+            --font-display: 'Syne', sans-serif;
+            --font-serif: 'Instrument Serif', serif;
+            --font-body: 'Noto Sans KR', 'Pretendard', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Grain overlay ── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 256px 256px;
+        }
+
+        /* ── Ambient orbs ── */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            will-change: transform;
+        }
+        .orb-amber {
+            background: radial-gradient(circle, rgba(247,183,49,0.18) 0%, transparent 70%);
+        }
+        .orb-blue {
+            background: radial-gradient(circle, rgba(96,165,250,0.12) 0%, transparent 70%);
+        }
+        .orb-violet {
+            background: radial-gradient(circle, rgba(167,139,250,0.10) 0%, transparent 70%);
+        }
+
+        /* ── Typography ── */
+        .font-display { font-family: var(--font-display); }
+        .font-serif { font-family: var(--font-serif); }
+        .font-mono { font-family: var(--font-mono); }
+
+        .text-gradient-amber {
+            background: linear-gradient(135deg, #F7B731 0%, #FDE68A 50%, #F59E0B 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .hero-gradient {
-            background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(99, 102, 241, 0.15) 0%, transparent 70%),
-                        radial-gradient(ellipse 60% 40% at 80% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 60%);
+        .text-gradient-cool {
+            background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 50%, #2DD4BF 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        /* Phone mockup */
-        .phone-frame {
-            position: relative;
-            width: 260px;
-            border-radius: 36px;
-            padding: 12px;
-            background: linear-gradient(145deg, #1a1a2e, #2d2d44);
-            box-shadow:
-                0 25px 60px -12px rgba(0, 0, 0, 0.35),
-                0 0 0 1px rgba(255, 255, 255, 0.05),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        /* ── Navigation ── */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1rem 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .phone-frame::before {
+        .nav-scrolled {
+            background: rgba(6,11,24,0.85);
+            backdrop-filter: blur(20px) saturate(1.5);
+            -webkit-backdrop-filter: blur(20px) saturate(1.5);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0.6rem 0;
+        }
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+        .nav-logo img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+        .nav-logo span {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: -0.02em;
+        }
+        .nav-logo .accent { color: var(--amber); }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--text-primary); }
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1.25rem;
+            background: var(--amber);
+            color: #0B1120;
+            font-weight: 700;
+            font-size: 0.8rem;
+            border-radius: 100px;
+            text-decoration: none;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        .nav-cta:hover {
+            background: var(--amber-soft);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(247,183,49,0.25);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        .mobile-menu {
+            display: none;
+            padding: 1rem 0;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 0.75rem 0;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .mobile-menu a:last-child { border-bottom: none; }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .mobile-menu.open { display: block; }
+        }
+
+        /* ── Sections ── */
+        section { position: relative; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 6rem;
+            padding-bottom: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem 0.4rem 0.6rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: #22C55E;
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+        }
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+        }
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 2.5rem;
+            max-width: 480px;
+        }
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.9rem 1.75rem;
+            background: var(--amber);
+            color: #0B1120;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-radius: 14px;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background: var(--amber-soft);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(247,183,49,0.3);
+        }
+        .btn-primary svg { width: 20px; height: 20px; }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.9rem 1.75rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: 14px;
+            text-decoration: none;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+        .btn-secondary svg { width: 20px; height: 20px; }
+
+        /* Phone mockup */
+        .hero-phone-wrap {
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        .phone-mockup {
+            position: relative;
+            width: 280px;
+            padding: 14px;
+            border-radius: 40px;
+            background: linear-gradient(160deg, #1E293B, #0F172A);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.08),
+                0 40px 80px -20px rgba(0,0,0,0.6),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+            z-index: 2;
+        }
+        .phone-mockup::before {
             content: '';
             position: absolute;
-            top: 12px;
+            top: 14px;
             left: 50%;
             transform: translateX(-50%);
             width: 80px;
-            height: 24px;
-            background: #1a1a2e;
-            border-radius: 0 0 16px 16px;
+            height: 26px;
+            background: #0F172A;
+            border-radius: 0 0 18px 18px;
             z-index: 10;
         }
-        .phone-frame img {
+        .phone-mockup img {
             width: 100%;
-            border-radius: 24px;
+            border-radius: 28px;
             display: block;
         }
+        .phone-glow {
+            position: absolute;
+            inset: -40px;
+            background: radial-gradient(ellipse at center, rgba(247,183,49,0.12) 0%, transparent 60%);
+            z-index: 1;
+            border-radius: 50%;
+            animation: glow-breathe 4s ease-in-out infinite;
+        }
+        @keyframes glow-breathe {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-14px); }
+        }
+        .float { animation: float 6s ease-in-out infinite; }
+        .float-d1 { animation-delay: 0.8s; }
+        .float-d2 { animation-delay: 1.6s; }
 
-        .phone-frame-sm {
-            width: 220px;
+        /* Phone small variant */
+        .phone-sm { width: 230px; padding: 10px; border-radius: 34px; }
+        .phone-sm::before { height: 22px; width: 70px; border-radius: 0 0 14px 14px; top: 10px; }
+        .phone-sm img { border-radius: 24px; }
+
+        @media (max-width: 768px) {
+            .hero { min-height: auto; padding-top: 7rem; padding-bottom: 3rem; }
+            .hero-grid { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
+            .hero-subtitle { margin-left: auto; margin-right: auto; }
+            .hero-actions { justify-content: center; }
+            .phone-mockup { width: 240px; }
         }
 
-        /* Feature card hover */
+        /* ── Trust strip ── */
+        .trust-strip {
+            padding: 3rem 0;
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .trust-grid {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+        .trust-item { text-align: center; }
+        .trust-number {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .trust-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+        .trust-divider {
+            width: 1px;
+            height: 40px;
+            background: var(--border-subtle);
+        }
+
+        @media (max-width: 640px) {
+            .trust-grid { gap: 1.5rem; }
+            .trust-divider { display: none; }
+            .trust-item { flex: 1; min-width: 120px; }
+        }
+
+        /* ── Section headers ── */
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--amber);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+        .section-desc {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-width: 560px;
+        }
+
+        /* ── Features ── */
+        .features { padding: 7rem 0; position: relative; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-top: 3.5rem;
+        }
         .feature-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 2rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(247,183,49,0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
         }
         .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px -12px rgba(99, 102, 241, 0.15);
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 60px -15px rgba(0,0,0,0.5);
+        }
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+            font-size: 1.25rem;
+        }
+        .feature-icon.amber { background: rgba(247,183,49,0.1); color: var(--amber); }
+        .feature-icon.blue { background: rgba(96,165,250,0.1); color: var(--blue); }
+        .feature-icon.violet { background: rgba(167,139,250,0.1); color: var(--violet); }
+        .feature-icon.teal { background: rgba(45,212,191,0.1); color: var(--teal); }
+
+        .feature-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+            letter-spacing: -0.01em;
+        }
+        .feature-card p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
         }
 
-        /* Scroll animations */
-        .fade-up {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.7s ease, transform 0.7s ease;
-        }
-        .fade-up.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        @media (max-width: 1024px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 640px) { .features-grid { grid-template-columns: 1fr; } }
 
-        /* Screenshot carousel */
+        /* ── Screenshots ── */
+        .screenshots { padding: 7rem 0; position: relative; }
+        .screenshots-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, var(--bg-deep) 0%, rgba(15,23,42,1) 50%, var(--bg-deep) 100%);
+        }
         .screenshot-track {
             display: flex;
-            gap: 2rem;
+            gap: 2.5rem;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            padding: 2rem 0;
+            padding: 3rem 1.5rem;
+            margin-top: 2rem;
         }
         .screenshot-track::-webkit-scrollbar { display: none; }
         .screenshot-item {
             scroll-snap-align: center;
             flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .screenshot-item h4 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.3rem;
+            font-size: 0.95rem;
+        }
+        .screenshot-item p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 200px;
+            line-height: 1.5;
         }
 
-        /* Step connector */
-        .step-connector {
+        /* ── How it works ── */
+        .how-it-works { padding: 7rem 0; }
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3.5rem;
+            position: relative;
+        }
+        .steps-connector {
             position: absolute;
-            top: 28px;
-            left: calc(50% + 28px);
-            width: calc(100% - 56px);
-            height: 2px;
-            background: linear-gradient(90deg, #c7d2fe, #e9d5ff);
+            top: 36px;
+            left: calc(16.67% + 24px);
+            right: calc(16.67% + 24px);
+            height: 1px;
+            background: linear-gradient(90deg, var(--amber), var(--violet), var(--teal));
+            opacity: 0.3;
+        }
+        .step {
+            text-align: center;
+            position: relative;
+        }
+        .step-number {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin: 0 auto 1.25rem;
+            position: relative;
+            z-index: 2;
+            color: #0B1120;
+        }
+        .step-number.n1 { background: var(--amber); box-shadow: 0 8px 24px rgba(247,183,49,0.2); }
+        .step-number.n2 { background: var(--violet); box-shadow: 0 8px 24px rgba(167,139,250,0.2); }
+        .step-number.n3 { background: var(--teal); box-shadow: 0 8px 24px rgba(45,212,191,0.2); }
+
+        .step h3 {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+        }
+        .step p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-width: 300px;
+            margin: 0 auto;
         }
 
-        /* Pulse animation for CTA */
-        @keyframes subtle-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-            50% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
-        }
-        .cta-pulse { animation: subtle-pulse 3s infinite; }
-
-        /* Floating animation */
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-12px); }
-        }
-        .float-animation { animation: float 6s ease-in-out infinite; }
-        .float-delay-1 { animation-delay: 1s; }
-        .float-delay-2 { animation-delay: 2s; }
-
-        /* Background mesh */
-        .mesh-bg {
-            background-image:
-                radial-gradient(at 20% 80%, rgba(99, 102, 241, 0.06) 0px, transparent 50%),
-                radial-gradient(at 80% 20%, rgba(168, 85, 247, 0.06) 0px, transparent 50%),
-                radial-gradient(at 50% 50%, rgba(236, 72, 153, 0.03) 0px, transparent 50%);
+        @media (max-width: 768px) {
+            .steps-grid { grid-template-columns: 1fr; gap: 3rem; }
+            .steps-connector { display: none; }
         }
 
-        /* Smooth scroll */
-        html { scroll-behavior: smooth; }
+        /* ── Value prop (dark emphasis) ── */
+        .value-section {
+            padding: 7rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .value-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 30% 50%, rgba(247,183,49,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 60% at 70% 40%, rgba(96,165,250,0.05) 0%, transparent 70%),
+                linear-gradient(180deg, rgba(15,23,42,0.8) 0%, var(--bg-deep) 100%);
+        }
+        .value-content {
+            position: relative;
+            z-index: 2;
+            max-width: 680px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .value-quote {
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: clamp(1.5rem, 3vw, 2.25rem);
+            line-height: 1.4;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        .value-text {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 3rem;
+        }
+        .value-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+        }
+        .stat-card {
+            padding: 1.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        .stat-number {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+        }
 
-        /* Nav scroll state */
-        .nav-scrolled {
-            border-bottom-color: rgba(148, 163, 184, 0.2);
-            background: rgba(255, 255, 255, 0.92);
+        @media (max-width: 640px) {
+            .value-stats { grid-template-columns: 1fr; }
+        }
+
+        /* ── CTA ── */
+        .cta-section { padding: 7rem 0; position: relative; }
+        .cta-inner {
+            max-width: 640px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .cta-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .cta-note {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.03em;
+        }
+
+        /* ── Footer ── */
+        footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 3.5rem 0 2rem;
+        }
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 3rem;
+            padding-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-wrap: wrap;
+        }
+        .footer-brand p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+            max-width: 280px;
+            line-height: 1.6;
+        }
+        .footer-cols {
+            display: flex;
+            gap: 3.5rem;
+            flex-wrap: wrap;
+        }
+        .footer-col h4 {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .footer-col a, .footer-col span {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 0.4rem;
+            transition: color 0.2s;
+        }
+        .footer-col a:hover { color: var(--text-primary); }
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding-top: 2rem;
+            justify-content: center;
+        }
+        .footer-links a {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--text-secondary); }
+        .footer-copy {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 1.5rem;
+            font-family: var(--font-mono);
+            letter-spacing: 0.03em;
+        }
+
+        @media (max-width: 768px) {
+            .footer-top { flex-direction: column; }
+            .footer-cols { gap: 2rem; }
+        }
+
+        /* ── Reveal animation ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-d1 { transition-delay: 0.1s; }
+        .reveal-d2 { transition-delay: 0.2s; }
+        .reveal-d3 { transition-delay: 0.3s; }
+        .reveal-d4 { transition-delay: 0.4s; }
+
+        /* Hero stagger */
+        .hero-stagger > * {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: hero-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .hero-stagger > *:nth-child(1) { animation-delay: 0.1s; }
+        .hero-stagger > *:nth-child(2) { animation-delay: 0.25s; }
+        .hero-stagger > *:nth-child(3) { animation-delay: 0.4s; }
+        .hero-stagger > *:nth-child(4) { animation-delay: 0.55s; }
+        @keyframes hero-in {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-phone-reveal {
+            opacity: 0;
+            transform: translateY(60px) scale(0.95);
+            animation: phone-in 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+        }
+        @keyframes phone-in {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ── Glow line separator ── */
+        .glow-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--amber) 30%, var(--violet) 70%, transparent 100%);
+            opacity: 0.2;
+            margin: 0;
         }
     </style>
 </head>
-<body class="bg-white text-slate-900 overflow-x-hidden">
+<body>
 
-    <!-- Navigation -->
-    <nav id="nav" class="fixed w-full z-50 bg-white/70 backdrop-blur-xl border-b border-transparent transition-all duration-300">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <a href="#" class="flex items-center gap-2.5">
-                    <img src="images/512.png" alt="MediPrep AI" class="w-8 h-8 rounded-lg">
-                    <span class="text-xl font-bold text-slate-900">MediPrep <span class="text-brand-600">AI</span></span>
-                </a>
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="text-sm text-slate-500 hover:text-brand-600 font-medium transition-colors">기능</a>
-                    <a href="#screenshots" class="text-sm text-slate-500 hover:text-brand-600 font-medium transition-colors">미리보기</a>
-                    <a href="#how-it-works" class="text-sm text-slate-500 hover:text-brand-600 font-medium transition-colors">사용법</a>
-                    <a href="mailto:hopekgh@gmail.com" class="text-sm px-4 py-2 bg-brand-600 text-white font-semibold rounded-full hover:bg-brand-700 transition-colors">문의하기</a>
-                </div>
-                <!-- Mobile menu button -->
-                <button id="menu-btn" class="md:hidden p-2 text-slate-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                </button>
-            </div>
-            <!-- Mobile menu -->
-            <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-slate-100 mt-2 pt-4">
-                <div class="flex flex-col gap-3">
-                    <a href="#features" class="text-slate-600 font-medium px-2 py-1">기능</a>
-                    <a href="#screenshots" class="text-slate-600 font-medium px-2 py-1">미리보기</a>
-                    <a href="#how-it-works" class="text-slate-600 font-medium px-2 py-1">사용법</a>
-                    <a href="mailto:hopekgh@gmail.com" class="text-brand-600 font-semibold px-2 py-1">문의하기</a>
-                </div>
+    <!-- ═══ Navigation ═══ -->
+    <nav class="nav" id="nav">
+        <div class="nav-inner">
+            <a href="#" class="nav-logo">
+                <img src="images/512.png" alt="MediPrep AI">
+                <span>MediPrep <span class="accent">AI</span></span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">기능</a></li>
+                <li><a href="#screenshots">미리보기</a></li>
+                <li><a href="#how-it-works">사용법</a></li>
+                <li><a href="mailto:hopekgh@gmail.com" class="nav-cta">문의하기</a></li>
+            </ul>
+            <button class="mobile-menu-btn" id="menu-btn" aria-label="메뉴 열기">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobile-menu">
+            <div class="container">
+                <a href="#features">기능</a>
+                <a href="#screenshots">미리보기</a>
+                <a href="#how-it-works">사용법</a>
+                <a href="mailto:hopekgh@gmail.com">문의하기</a>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="relative pt-28 pb-16 lg:pt-36 lg:pb-24 hero-gradient">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-                <!-- Left: Text -->
-                <div class="flex-1 text-center lg:text-left">
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 border border-brand-100 rounded-full mb-6">
-                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        <span class="text-sm font-medium text-brand-700">의대생을 위한 AI 학습 도우미</span>
+    <!-- ═══ Hero ═══ -->
+    <section class="hero">
+        <!-- Ambient orbs -->
+        <div class="orb orb-amber" style="width:500px;height:500px;top:-10%;right:-5%;"></div>
+        <div class="orb orb-blue" style="width:400px;height:400px;bottom:10%;left:-8%;"></div>
+
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-stagger">
+                    <div class="hero-badge">
+                        <span class="dot"></span>
+                        의대생을 위한 AI 학습 도우미
                     </div>
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] mb-6">
-                        강의 녹음 하나로<br>
-                        <span class="gradient-text">시험 준비</span> 끝.
+                    <h1 class="hero-title">
+                        강의 녹음 하나로,<br><span class="text-gradient-amber">시험 준비</span> 끝.
                     </h1>
-                    <p class="text-lg text-slate-500 leading-relaxed max-w-lg mx-auto lg:mx-0 mb-8">
-                        녹음 버튼 하나만 누르세요.<br class="hidden sm:block">
+                    <p class="hero-subtitle">
+                        녹음 버튼 하나만 누르세요.<br>
                         AI가 전사, 요약, 시험 출제 포인트까지 자동으로 분석합니다.
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                        <a href="https://apps.apple.com/kr/app/%EB%A9%94%EB%94%94%ED%94%84%EB%A0%A2-%EC%9D%98%EB%8C%80%EC%83%9D%EC%9A%A9-%EA%B0%95%EC%9D%98-%EB%85%B9%EC%9D%8C-%EC%A0%84%EC%82%AC-%EC%9A%94%EC%95%BD/id6749312731" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-brand-600 text-white font-bold rounded-full shadow-lg shadow-brand-600/25 hover:bg-brand-700 hover:shadow-xl transition-all cta-pulse">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                            App Store에서 다운로드
+                    <div class="hero-actions">
+                        <a href="https://apps.apple.com/kr/app/%EB%A9%94%EB%94%94%ED%94%84%EB%A0%A2-%EC%9D%98%EB%8C%80%EC%83%9D%EC%9A%A9-%EA%B0%95%EC%9D%98-%EB%85%B9%EC%9D%8C-%EC%A0%84%EC%82%AC-%EC%9A%94%EC%95%BD/id6749312731" class="btn-primary">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                            App Store
                         </a>
-                        <a href="https://play.google.com/store/apps/details?id=com.koh.mediprep_ai" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white text-slate-700 font-semibold rounded-full border border-slate-200 hover:border-brand-200 hover:bg-brand-50 transition-all">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.807 1.626a1 1 0 0 1 0 1.732l-2.807 1.626L15.206 12l2.492-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
-                            Google Play에서 다운로드
+                        <a href="https://play.google.com/store/apps/details?id=com.koh.mediprep_ai" class="btn-secondary">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.807 1.626a1 1 0 0 1 0 1.732l-2.807 1.626L15.206 12l2.492-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
+                            Google Play
                         </a>
                     </div>
                 </div>
-                <!-- Right: Phone mockup -->
-                <div class="flex-shrink-0 relative">
-                    <div class="phone-frame float-animation">
-                        <img src="images/Screenshot_20260228_150926.png" alt="MediPrep AI - 출제 암시 분석 화면">
+                <div class="hero-phone-wrap hero-phone-reveal">
+                    <div class="phone-glow"></div>
+                    <div class="phone-mockup float">
+                        <img src="images/Screenshot_20260228_150926.png" alt="MediPrep AI 출제 암시 분석">
                     </div>
-                    <!-- Decorative elements -->
-                    <div class="absolute -top-6 -right-6 w-24 h-24 bg-brand-100 rounded-full opacity-60 blur-2xl"></div>
-                    <div class="absolute -bottom-4 -left-8 w-32 h-32 bg-purple-100 rounded-full opacity-60 blur-2xl"></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Trust Bar -->
-    <section class="py-8 border-y border-slate-100 bg-slate-50/50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-wrap items-center justify-center gap-8 md:gap-16 text-center">
-                <div>
-                    <div class="text-2xl font-bold text-brand-600">AI 기반</div>
-                    <div class="text-sm text-slate-400 mt-0.5">Gemini 모델 활용</div>
+    <!-- ═══ Trust Strip ═══ -->
+    <div class="trust-strip">
+        <div class="container">
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <div class="trust-number text-gradient-amber">AI 기반</div>
+                    <div class="trust-label">Gemini 모델 활용</div>
                 </div>
-                <div class="w-px h-8 bg-slate-200 hidden md:block"></div>
-                <div>
-                    <div class="text-2xl font-bold text-brand-600">5가지</div>
-                    <div class="text-sm text-slate-400 mt-0.5">AI 분석 기능 제공</div>
+                <div class="trust-divider"></div>
+                <div class="trust-item">
+                    <div class="trust-number text-gradient-cool">5가지</div>
+                    <div class="trust-label">AI 분석 기능 제공</div>
                 </div>
-                <div class="w-px h-8 bg-slate-200 hidden md:block"></div>
-                <div>
-                    <div class="text-2xl font-bold text-brand-600">의학 특화</div>
-                    <div class="text-sm text-slate-400 mt-0.5">전문 용어 정확 인식</div>
+                <div class="trust-divider"></div>
+                <div class="trust-item">
+                    <div class="trust-number text-gradient-amber">의학 특화</div>
+                    <div class="trust-label">전문 용어 정확 인식</div>
                 </div>
-                <div class="w-px h-8 bg-slate-200 hidden md:block"></div>
-                <div>
-                    <div class="text-2xl font-bold text-brand-600">실시간</div>
-                    <div class="text-sm text-slate-400 mt-0.5">녹음 즉시 분석 시작</div>
+                <div class="trust-divider"></div>
+                <div class="trust-item">
+                    <div class="trust-number text-gradient-cool">실시간</div>
+                    <div class="trust-label">녹음 즉시 분석 시작</div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Features -->
-    <section id="features" class="py-20 lg:py-28 mesh-bg">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 fade-up">
-                <p class="text-sm font-semibold text-brand-600 uppercase tracking-wider mb-3">Features</p>
-                <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-                    녹음 하나로 이 모든 걸 해줍니다
-                </h2>
-                <p class="text-lg text-slate-500 max-w-2xl mx-auto">
-                    복잡한 의학 강의, 더 이상 필기에 집중할 필요 없습니다.<br class="hidden sm:block">
+    <!-- ═══ Features ═══ -->
+    <section id="features" class="features">
+        <div class="orb orb-violet" style="width:500px;height:500px;top:0;right:-15%;"></div>
+        <div class="container">
+            <div class="reveal" style="text-align:center;">
+                <div class="section-label">Features</div>
+                <h2 class="section-title">녹음 하나로 이 모든 걸 해줍니다</h2>
+                <p class="section-desc" style="margin:0 auto;">
+                    복잡한 의학 강의, 더 이상 필기에 집중할 필요 없습니다.<br>
                     AI가 당신의 학습 어시스턴트가 되어드립니다.
                 </p>
             </div>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 fade-up">
-                <!-- Feature 1 -->
-                <div class="feature-card bg-white p-7 rounded-2xl border border-slate-100">
-                    <div class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center mb-5">
-                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+            <div class="features-grid">
+                <div class="feature-card reveal reveal-d1">
+                    <div class="feature-icon amber">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold mb-2">강의 녹음 & 전사</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">강의를 녹음하면 AI가 의학 전문 용어까지 정확하게 텍스트로 변환합니다. 타임스탬프로 원하는 구간을 바로 찾을 수 있어요.</p>
+                    <h3>강의 녹음 & 전사</h3>
+                    <p>강의를 녹음하면 AI가 의학 전문 용어까지 정확하게 텍스트로 변환합니다. 타임스탬프로 원하는 구간을 바로 찾을 수 있어요.</p>
                 </div>
-                <!-- Feature 2 -->
-                <div class="feature-card bg-white p-7 rounded-2xl border border-slate-100">
-                    <div class="w-11 h-11 bg-purple-50 rounded-xl flex items-center justify-center mb-5">
-                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <div class="feature-card reveal reveal-d2">
+                    <div class="feature-icon violet">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold mb-2">자동 요약 노트</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">강의 개요, 학습 목표, 핵심 내용을 구조화된 노트로 자동 정리합니다. 복습 시간을 획기적으로 줄여줍니다.</p>
+                    <h3>자동 요약 노트</h3>
+                    <p>강의 개요, 학습 목표, 핵심 내용을 구조화된 노트로 자동 정리합니다. 복습 시간을 획기적으로 줄여줍니다.</p>
                 </div>
-                <!-- Feature 3 -->
-                <div class="feature-card bg-white p-7 rounded-2xl border border-slate-100">
-                    <div class="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center mb-5">
-                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                <div class="feature-card reveal reveal-d3">
+                    <div class="feature-icon amber">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold mb-2">출제 암시 감지</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">"시험에 나옵니다" 같은 교수님 발언을 AI가 자동 감지합니다. 해당 구간 음성도 바로 재생할 수 있어요.</p>
+                    <h3>출제 암시 감지</h3>
+                    <p>"시험에 나옵니다" 같은 교수님 발언을 AI가 자동 감지합니다. 해당 구간 음성도 바로 재생할 수 있어요.</p>
                 </div>
-                <!-- Feature 4 -->
-                <div class="feature-card bg-white p-7 rounded-2xl border border-slate-100">
-                    <div class="w-11 h-11 bg-emerald-50 rounded-xl flex items-center justify-center mb-5">
-                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <div class="feature-card reveal reveal-d4">
+                    <div class="feature-icon teal">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     </div>
-                    <h3 class="text-lg font-bold mb-2">시험 대비 요점 정리</h3>
-                    <p class="text-sm text-slate-500 leading-relaxed">강의 내용을 시험 관점에서 재구성합니다. 예상 출제 주제와 핵심 포인트를 한눈에 파악하세요.</p>
+                    <h3>시험 대비 요점 정리</h3>
+                    <p>강의 내용을 시험 관점에서 재구성합니다. 예상 출제 주제와 핵심 포인트를 한눈에 파악하세요.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- App Screenshots Section -->
-    <section id="screenshots" class="py-20 lg:py-28 bg-slate-50">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-14 fade-up">
-                <p class="text-sm font-semibold text-brand-600 uppercase tracking-wider mb-3">App Preview</p>
-                <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-                    실제 앱 화면을 확인하세요
-                </h2>
-                <p class="text-lg text-slate-500">심장학 강의를 녹음한 실제 분석 결과입니다.</p>
-            </div>
+    <div class="glow-line"></div>
 
-            <!-- Screenshot Showcase -->
-            <div class="screenshot-track px-4 fade-up">
-                <!-- Screen 1: Transcription -->
-                <div class="screenshot-item flex flex-col items-center">
-                    <div class="phone-frame phone-frame-sm float-animation">
+    <!-- ═══ Screenshots ═══ -->
+    <section id="screenshots" class="screenshots">
+        <div class="screenshots-bg"></div>
+        <div class="container" style="position:relative;z-index:2;">
+            <div class="reveal" style="text-align:center;">
+                <div class="section-label">App Preview</div>
+                <h2 class="section-title">실제 앱 화면을 확인하세요</h2>
+                <p class="section-desc" style="margin:0 auto;">심장학 강의를 녹음한 실제 분석 결과입니다.</p>
+            </div>
+            <div class="screenshot-track">
+                <div class="screenshot-item">
+                    <div class="phone-mockup phone-sm float">
                         <img src="images/Screenshot_20260228_144346.png" alt="강의 전사본">
                     </div>
-                    <div class="mt-6 text-center max-w-[220px]">
-                        <h4 class="font-bold text-slate-900 mb-1">전사본</h4>
-                        <p class="text-sm text-slate-500">타임스탬프와 함께 강의 내용을 정확하게 텍스트로 변환</p>
-                    </div>
+                    <h4>전사본</h4>
+                    <p>타임스탬프와 함께 강의 내용을 정확하게 텍스트로 변환</p>
                 </div>
-
-                <!-- Screen 2: Summary -->
-                <div class="screenshot-item flex flex-col items-center">
-                    <div class="phone-frame phone-frame-sm float-animation float-delay-1">
-                        <img src="images/Screenshot_20260228_150914.png" alt="강의 요약">
+                <div class="screenshot-item">
+                    <div class="phone-mockup phone-sm float float-d1">
+                        <img src="images/Screenshot_20260228_150839.png" alt="강의 요약">
                     </div>
-                    <div class="mt-6 text-center max-w-[220px]">
-                        <h4 class="font-bold text-slate-900 mb-1">상세 요약</h4>
-                        <p class="text-sm text-slate-500">학습 목표, 핵심 개념을 구조화된 노트로 자동 정리</p>
-                    </div>
+                    <h4>상세 요약</h4>
+                    <p>학습 목표, 핵심 개념을 구조화된 노트로 자동 정리</p>
                 </div>
-
-                <!-- Screen 3: Exam Hints -->
-                <div class="screenshot-item flex flex-col items-center">
-                    <div class="phone-frame phone-frame-sm float-animation float-delay-2">
-                        <img src="images/Screenshot_20260228_150926.png" alt="출제 암시">
+                <div class="screenshot-item">
+                    <div class="phone-mockup phone-sm float float-d2">
+                        <img src="images/Screenshot_20260228_150914.png" alt="출제 암시">
                     </div>
-                    <div class="mt-6 text-center max-w-[220px]">
-                        <h4 class="font-bold text-slate-900 mb-1">출제 암시 감지</h4>
-                        <p class="text-sm text-slate-500">교수님의 시험 힌트를 자동으로 감지하고 정리</p>
-                    </div>
+                    <h4>출제 암시 감지</h4>
+                    <p>교수님의 시험 힌트를 자동으로 감지하고 정리</p>
                 </div>
-
-                <!-- Screen 4: Exam Prep -->
-                <div class="screenshot-item flex flex-col items-center">
-                    <div class="phone-frame phone-frame-sm float-animation">
-                        <img src="images/Screenshot_20260228_150934.png" alt="시험 대비 요점 정리">
+                <div class="screenshot-item">
+                    <div class="phone-mockup phone-sm float">
+                        <img src="images/Screenshot_20260228_150926.png" alt="시험 대비">
                     </div>
-                    <div class="mt-6 text-center max-w-[220px]">
-                        <h4 class="font-bold text-slate-900 mb-1">시험 대비 요점</h4>
-                        <p class="text-sm text-slate-500">시험 관점에서 핵심 내용을 재구성하여 요약</p>
+                    <h4>시험 대비 요점</h4>
+                    <p>시험 관점에서 핵심 내용을 재구성하여 요약</p>
+                </div>
+                <div class="screenshot-item">
+                    <div class="phone-mockup phone-sm float float-d1">
+                        <img src="images/Screenshot_20260228_150934.png" alt="부가 정보">
                     </div>
+                    <h4>부가 정보</h4>
+                    <p>강의 관련 추가 학습 자료와 참고 정보 제공</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- How It Works -->
-    <section id="how-it-works" class="py-20 lg:py-28">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 fade-up">
-                <p class="text-sm font-semibold text-brand-600 uppercase tracking-wider mb-3">How it works</p>
-                <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-                    3단계면 충분합니다
-                </h2>
-            </div>
-            <div class="grid md:grid-cols-3 gap-8 lg:gap-12 relative fade-up">
-                <!-- Connector line (desktop) -->
-                <div class="hidden md:block absolute top-8 left-[calc(16.67%+20px)] right-[calc(16.67%+20px)] h-0.5 bg-gradient-to-r from-brand-200 via-purple-200 to-pink-200"></div>
+    <div class="glow-line"></div>
 
-                <!-- Step 1 -->
-                <div class="text-center relative">
-                    <div class="w-14 h-14 bg-brand-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-5 relative z-10 shadow-lg shadow-brand-600/20">1</div>
-                    <h3 class="text-xl font-bold mb-3">강의를 녹음하세요</h3>
-                    <p class="text-slate-500">앱에서 녹음 버튼만 누르세요. 강의실에서 바로 고품질 녹음이 시작됩니다.</p>
+    <!-- ═══ How It Works ═══ -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="reveal" style="text-align:center;">
+                <div class="section-label">How it works</div>
+                <h2 class="section-title">3단계면 충분합니다</h2>
+            </div>
+            <div class="steps-grid reveal">
+                <div class="steps-connector" style="display:none;"></div>
+                <div class="step">
+                    <div class="step-number n1">1</div>
+                    <h3>강의를 녹음하세요</h3>
+                    <p>앱에서 녹음 버튼만 누르세요. 강의실에서 바로 고품질 녹음이 시작됩니다.</p>
                 </div>
-                <!-- Step 2 -->
-                <div class="text-center relative">
-                    <div class="w-14 h-14 bg-purple-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-5 relative z-10 shadow-lg shadow-purple-600/20">2</div>
-                    <h3 class="text-xl font-bold mb-3">AI가 자동 분석</h3>
-                    <p class="text-slate-500">녹음이 끝나면 AI가 전사, 요약, 출제 포인트 분석을 동시에 진행합니다.</p>
+                <div class="step">
+                    <div class="step-number n2">2</div>
+                    <h3>AI가 자동 분석</h3>
+                    <p>녹음이 끝나면 AI가 전사, 요약, 출제 포인트 분석을 동시에 진행합니다.</p>
                 </div>
-                <!-- Step 3 -->
-                <div class="text-center relative">
-                    <div class="w-14 h-14 bg-pink-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold mx-auto mb-5 relative z-10 shadow-lg shadow-pink-600/20">3</div>
-                    <h3 class="text-xl font-bold mb-3">시험 준비 완료</h3>
-                    <p class="text-slate-500">전사본, 요약 노트, 출제 암시, 시험 대비 요점까지. 바로 복습을 시작하세요.</p>
+                <div class="step">
+                    <div class="step-number n3">3</div>
+                    <h3>시험 준비 완료</h3>
+                    <p>전사본, 요약 노트, 출제 암시, 시험 대비 요점까지. 바로 복습을 시작하세요.</p>
                 </div>
             </div>
+            <!-- Show connector on desktop -->
+            <style>.steps-grid .steps-connector { display: block !important; } @media(max-width:768px) { .steps-grid .steps-connector { display: none !important; } }</style>
         </div>
     </section>
 
-    <!-- Pain Point / Value Prop -->
-    <section class="py-20 lg:py-28 bg-gradient-to-b from-slate-900 to-slate-800 text-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-3xl mx-auto text-center fade-up">
-                <p class="text-brand-300 font-semibold mb-4 text-sm uppercase tracking-wider">For Medical Students</p>
-                <h2 class="text-3xl sm:text-4xl font-bold mb-6 leading-tight">
+    <!-- ═══ Value Proposition ═══ -->
+    <section class="value-section">
+        <div class="value-bg"></div>
+        <div class="container">
+            <div class="value-content reveal">
+                <div class="section-label">For Medical Students</div>
+                <p class="value-quote">
                     필기하느라 강의를 놓치고,<br>
                     강의 듣느라 필기를 놓치고 있나요?
-                </h2>
-                <p class="text-lg text-slate-400 leading-relaxed mb-10">
+                </p>
+                <p class="value-text">
                     본과 수업은 빠르고, 내용은 방대하고, 시험은 어렵습니다.<br>
                     MediPrep AI가 필기와 정리를 대신해드립니다.<br>
-                    <strong class="text-white">당신은 강의에만 집중하세요.</strong>
+                    <strong style="color:var(--text-primary)">당신은 강의에만 집중하세요.</strong>
                 </p>
-                <div class="grid sm:grid-cols-3 gap-6">
-                    <div class="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
-                        <div class="text-3xl font-bold text-brand-400 mb-2">100%</div>
-                        <div class="text-sm text-slate-400">강의 집중도 향상</div>
+                <div class="value-stats">
+                    <div class="stat-card">
+                        <div class="stat-number text-gradient-amber">100%</div>
+                        <div class="stat-label">강의 집중도 향상</div>
                     </div>
-                    <div class="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
-                        <div class="text-3xl font-bold text-purple-400 mb-2">1/3</div>
-                        <div class="text-sm text-slate-400">복습 시간 단축</div>
+                    <div class="stat-card">
+                        <div class="stat-number text-gradient-cool">1/3</div>
+                        <div class="stat-label">복습 시간 단축</div>
                     </div>
-                    <div class="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
-                        <div class="text-3xl font-bold text-pink-400 mb-2">자동</div>
-                        <div class="text-sm text-slate-400">시험 포인트 추출</div>
+                    <div class="stat-card">
+                        <div class="stat-number text-gradient-amber">자동</div>
+                        <div class="stat-label">시험 포인트 추출</div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Final CTA -->
-    <section class="py-20 lg:py-28 mesh-bg">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-2xl mx-auto text-center fade-up">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-50 border border-brand-100 rounded-full mb-6">
-                    <span class="text-sm font-medium text-brand-700">지금 바로 시작하세요</span>
-                </div>
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4">
-                    다음 시험, <span class="gradient-text">MediPrep AI</span>와 함께
+    <!-- ═══ Final CTA ═══ -->
+    <section class="cta-section">
+        <div class="orb orb-amber" style="width:400px;height:400px;top:20%;left:50%;transform:translateX(-50%);"></div>
+        <div class="container">
+            <div class="cta-inner reveal">
+                <div class="section-label">Get Started</div>
+                <h2 class="section-title">
+                    다음 시험,<br><span class="text-gradient-amber">MediPrep AI</span>와 함께
                 </h2>
-                <p class="text-lg text-slate-500 mb-8">
+                <p class="section-desc" style="margin:0 auto;">
                     녹음 하나로 시험 준비의 절반을 끝내보세요.
                 </p>
-                <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                    <a href="https://apps.apple.com/kr/app/%EB%A9%94%EB%94%94%ED%94%84%EB%A0%A2-%EC%9D%98%EB%8C%80%EC%83%9D%EC%9A%A9-%EA%B0%95%EC%9D%98-%EB%85%B9%EC%9D%8C-%EC%A0%84%EC%82%AC-%EC%9A%94%EC%95%BD/id6749312731" class="inline-flex items-center gap-2 px-8 py-4 bg-brand-600 text-white font-bold rounded-full shadow-lg shadow-brand-600/25 hover:bg-brand-700 hover:shadow-xl transition-all text-lg">
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                <div class="cta-actions">
+                    <a href="https://apps.apple.com/kr/app/%EB%A9%94%EB%94%94%ED%94%84%EB%A0%A2-%EC%9D%98%EB%8C%80%EC%83%9D%EC%9A%A9-%EA%B0%95%EC%9D%98-%EB%85%B9%EC%9D%8C-%EC%A0%84%EC%82%AC-%EC%9A%94%EC%95%BD/id6749312731" class="btn-primary" style="font-size:1.1rem;padding:1rem 2rem;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
                         App Store에서 다운로드
                     </a>
-                    <a href="https://play.google.com/store/apps/details?id=com.koh.mediprep_ai" class="inline-flex items-center gap-2 px-8 py-4 bg-white text-slate-700 font-bold rounded-full border border-slate-200 hover:border-brand-200 hover:bg-brand-50 transition-all text-lg">
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.807 1.626a1 1 0 0 1 0 1.732l-2.807 1.626L15.206 12l2.492-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
+                    <a href="https://play.google.com/store/apps/details?id=com.koh.mediprep_ai" class="btn-secondary" style="font-size:1.1rem;padding:1rem 2rem;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.807 1.626a1 1 0 0 1 0 1.732l-2.807 1.626L15.206 12l2.492-2.492zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
                         Google Play에서 다운로드
                     </a>
                 </div>
-                <p class="mt-4 text-sm text-slate-400">iOS & Android 지원</p>
+                <p class="cta-note">iOS & Android 지원</p>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-400 pt-12 pb-8">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-start gap-8 pb-8 border-b border-slate-800">
-                <div>
-                    <div class="flex items-center gap-2.5 mb-3">
-                        <img src="images/512.png" alt="MediPrep AI" class="w-7 h-7 rounded-lg opacity-80">
-                        <span class="text-lg font-bold text-white">MediPrep AI</span>
-                    </div>
-                    <p class="text-sm text-slate-500 max-w-xs">의대생의 학습을 혁신하는 AI 기반 강의 분석 플랫폼</p>
+    <!-- ═══ Footer ═══ -->
+    <footer>
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a href="#" class="nav-logo">
+                        <img src="images/512.png" alt="MediPrep AI">
+                        <span>MediPrep <span class="accent">AI</span></span>
+                    </a>
+                    <p>의대생의 학습을 혁신하는 AI 기반 강의 분석 플랫폼</p>
                 </div>
-                <div class="flex flex-col sm:flex-row gap-8">
-                    <div>
-                        <h4 class="text-sm font-semibold text-slate-300 mb-3">서비스</h4>
-                        <div class="flex flex-col gap-2">
-                            <a href="#features" class="text-sm hover:text-white transition-colors">기능 소개</a>
-                            <a href="#how-it-works" class="text-sm hover:text-white transition-colors">사용법</a>
-                        </div>
+                <div class="footer-cols">
+                    <div class="footer-col">
+                        <h4>서비스</h4>
+                        <a href="#features">기능 소개</a>
+                        <a href="#how-it-works">사용법</a>
                     </div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-slate-300 mb-3">법적 고지</h4>
-                        <div class="flex flex-col gap-2">
-                            <a href="terms.html" class="text-sm hover:text-white transition-colors">이용약관</a>
-                            <a href="privacy.html" class="text-sm hover:text-white transition-colors">개인정보처리방침</a>
-                        </div>
+                    <div class="footer-col">
+                        <h4>법적 고지</h4>
+                        <a href="terms.html">이용약관</a>
+                        <a href="privacy.html">개인정보처리방침</a>
                     </div>
-                    <div>
-                        <h4 class="text-sm font-semibold text-slate-300 mb-3">문의</h4>
-                        <div class="flex flex-col gap-2">
-                            <a href="mailto:hopekgh@gmail.com" class="text-sm hover:text-white transition-colors">hopekgh@gmail.com</a>
-                            <span class="text-sm">대표: 고민혁</span>
-                        </div>
+                    <div class="footer-col">
+                        <h4>문의</h4>
+                        <a href="mailto:hopekgh@gmail.com">hopekgh@gmail.com</a>
+                        <span>대표: 고민혁</span>
                     </div>
-                </div>
-                <div class="flex flex-wrap gap-8">
-                    <a href="terms.html" class="hover:text-white transition">서비스 이용약관</a>
-                    <a href="privacy.html" class="hover:text-white transition">개인정보처리방침</a>
-                    <a href="delete-account.html" class="hover:text-white transition">계정 삭제</a>
-                    <a href="mailto:hopekgh@gmail.com" class="hover:text-white transition">문의하기</a>
                 </div>
             </div>
-            <div class="mt-8 text-center text-xs text-slate-600">
-                &copy; 2025 MediPrep AI. All rights reserved.
+            <div class="footer-links">
+                <a href="terms.html">서비스 이용약관</a>
+                <a href="privacy.html">개인정보처리방침</a>
+                <a href="delete-account.html">계정 삭제</a>
+                <a href="mailto:hopekgh@gmail.com">문의하기</a>
             </div>
+            <div class="footer-copy">&copy; 2025 MediPrep AI. All rights reserved.</div>
         </div>
     </footer>
 
-    <!-- Minimal JS: scroll animations + nav + mobile menu -->
+    <!-- ═══ Scripts ═══ -->
     <script>
-        // Scroll-triggered fade-in
-        const obs = new IntersectionObserver((entries) => {
-            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
-        }, { threshold: 0.15 });
-        document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+        // Scroll-triggered reveals
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
         // Nav scroll effect
         const nav = document.getElementById('nav');
         window.addEventListener('scroll', () => {
-            nav.classList.toggle('nav-scrolled', window.scrollY > 20);
-        });
+            nav.classList.toggle('nav-scrolled', window.scrollY > 30);
+        }, { passive: true });
 
-        // Mobile menu toggle
+        // Mobile menu
         const menuBtn = document.getElementById('menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
-        menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-        mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileMenu.classList.add('hidden')));
+        menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+        mobileMenu.querySelectorAll('a').forEach(a =>
+            a.addEventListener('click', () => mobileMenu.classList.remove('open'))
+        );
     </script>
 </body>
 </html>
