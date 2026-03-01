@@ -88,6 +88,11 @@
         }
         .orb-1 { width: 600px; height: 600px; background: var(--accent-violet); top: -10%; left: -10%; }
         .orb-2 { width: 500px; height: 500px; background: var(--accent-teal); bottom: -20%; right: -10%; animation-delay: -5s; }
+        @media (max-width: 768px) {
+            .fluid-orb { opacity: 0.2; filter: blur(150px); }
+            .orb-1 { width: 350px; height: 350px; }
+            .orb-2 { width: 300px; height: 300px; }
+        }
         @keyframes orb-float {
             0% { transform: translate(0, 0) scale(1); }
             100% { transform: translate(100px, 150px) scale(1.2); }
