@@ -339,12 +339,36 @@
         /* ── Z-axis Screenshots Stack ── */
         .z-stack-section {
             height: 100vh; position: relative;
-            display: flex; align-items: center; justify-content: center;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             overflow: hidden;
         }
         .z-stack-header {
             position: absolute; top: 8%; left: 0; right: 0;
             text-align: center; z-index: 20;
+        }
+        @media (max-width: 768px) {
+            .z-stack-section {
+                height: auto; min-height: auto;
+                padding: 5rem 1.5rem 3rem;
+                flex-direction: column; gap: 2rem;
+            }
+            .z-stack-header {
+                position: relative; top: auto;
+                margin-bottom: 1rem;
+            }
+            .z-cards-container {
+                position: relative !important;
+                width: 100% !important; max-width: 280px;
+                height: auto !important; perspective: none !important;
+            }
+            .z-card {
+                position: relative !important; inset: auto !important;
+                width: 100%; height: auto; aspect-ratio: 9/19;
+                transform: none !important; opacity: 1 !important;
+                filter: none !important; margin-bottom: 2rem;
+            }
+            .z-card img { height: auto; }
         }
         .soundwave-bg {
             position: absolute; inset: 0;
@@ -361,10 +385,11 @@
         }
         .z-card {
             position: absolute; inset: 0; border-radius: 32px;
-            background: #111; border: 1px solid var(--border-glass);
+            background: var(--bg-deep); border: 1px solid var(--border-glass);
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
             display: flex; flex-direction: column; overflow: hidden;
             will-change: transform, opacity, filter;
+            backface-visibility: hidden;
         }
         .z-card img {
             width: 100%; height: 100%; object-fit: cover;
@@ -569,8 +594,8 @@
         <div class="hero-grid">
             <div class="hero-content">
                 <h1 class="hero-title font-display">
-                    <span class="line">Clinical Precision.</span>
-                    <span class="line text-gradient">Neural Fluidity.</span>
+                    <span class="line">의대 시험 준비</span>
+                    <span class="line text-gradient">이걸로 끝.</span>
                 </h1>
                 <p class="hero-desc">
                     복잡한 의학 강의를 녹음 버튼 하나로 완벽히 구조화합니다.<br>
@@ -830,6 +855,10 @@
     <!-- ═══ Scripts ═══ -->
     <script>
     (() => {
+        // Force scroll to top on load (prevent GSAP pin offset)
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        window.scrollTo(0, 0);
+
         gsap.registerPlugin(ScrollTrigger);
 
         // ── 1. Custom Cursor ──
@@ -912,7 +941,8 @@
             scrollTrigger: { trigger: '.b-grid', start: 'top 75%' }
         });
 
-        // ── 8. Z-axis Card Stack ──
+        // ── 8. Z-axis Card Stack (desktop only) ──
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
         const waveContainer = document.getElementById('soundwave');
         for (let i = 0; i < 30; i++) {
             const bar = document.createElement('div');
@@ -921,7 +951,7 @@
         }
 
         const cards = gsap.utils.toArray('.z-card');
-        if (cards.length >= 3) {
+        if (cards.length >= 3 && !isMobile) {
             gsap.set(cards[1], { z: -400, y: 100, opacity: 0, filter: "blur(10px)" });
             gsap.set(cards[2], { z: -800, y: 200, opacity: 0, filter: "blur(20px)" });
 
@@ -938,7 +968,7 @@
             stackTl
                 .to(cards[0], { z: 400, opacity: 0, filter: "blur(10px)" }, 0)
                 .to(cards[1], { z: 0, y: 0, opacity: 1, filter: "blur(0px)" }, 0)
-                .to(cards[2], { z: -400, y: 100, opacity: 0.5, filter: "blur(5px)" }, 0)
+                .to(cards[2], { z: -800, y: 200, opacity: 0, filter: "blur(20px)" }, 0)
                 .to(cards[1], { z: 400, opacity: 0, filter: "blur(10px)" }, 1)
                 .to(cards[2], { z: 0, y: 0, opacity: 1, filter: "blur(0px)" }, 1);
 
